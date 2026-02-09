@@ -8,6 +8,10 @@ onAuthStateChanged(auth, (user) => {
         }
     } else {
         console.log('Logged in as:', user.email);
+        // Load dashboard stats if on dashboard page
+        if (window.location.pathname.endsWith('dashboard.html')) {
+            loadDashboardStats();
+        }
     }
 });
 
@@ -15,6 +19,89 @@ window.logout = async () => {
     await signOut(auth);
     window.location.href = 'index.html';
 };
+
+// --- DASHBOARD STATISTICS ---
+async function loadDashboardStats() {
+    try {
+        // Get Products Count
+        const productsSnapshot = await getDocs(collection(db, "products"));
+        const productsCount = productsSnapshot.size;
+        document.getElementById('totalProducts').innerText = productsCount;
+
+        // Get Orders Count and Total Sales
+        const ordersSnapshot = await getDocs(collection(db, "orders"));
+        const ordersCount = ordersSnapshot.size;
+        let totalSales = 0;
+
+        ordersSnapshot.forEach(doc => {
+            const order = doc.data();
+            if (order.status === 'completed') {
+                totalSales += order.total_price || 0;
+            }
+        });
+
+        document.getElementById('totalOrders').innerText = ordersCount;
+        document.getElementById('totalSales').innerText = totalSales.toLocaleString() + ' EGP';
+
+        // Users count (placeholder - requires Auth users list which needs Admin SDK)
+        document.getElementById('totalUsers').innerText = '—';
+
+        // Load recent orders in table
+        loadRecentOrders(ordersSnapshot);
+
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+    }
+}
+
+function loadRecentOrders(ordersSnapshot) {
+    const tableBody = document.getElementById('recentOrdersTable');
+    if (!tableBody) return;
+
+    if (ordersSnapshot.empty) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-white-50">لا توجد طلبات حتى الآن</td></tr>';
+        return;
+    }
+
+    // Get last 5 orders
+    const orders = [];
+    ordersSnapshot.forEach(doc => {
+        orders.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Sort by date (newest first)
+    orders.sort((a, b) => {
+        const aTime = a.created_at?.seconds || 0;
+        const bTime = b.created_at?.seconds || 0;
+        return bTime - aTime;
+    });
+
+    const recentOrders = orders.slice(0, 5);
+
+    tableBody.innerHTML = recentOrders.map(order => {
+        const date = order.created_at ? new Date(order.created_at.seconds * 1000).toLocaleDateString('ar-EG') : 'N/A';
+        let statusBadge = 'bg-warning text-dark';
+        let statusText = 'جديد';
+        if (order.status === 'completed') {
+            statusBadge = 'bg-success';
+            statusText = 'مكتمل';
+        }
+        if (order.status === 'cancelled') {
+            statusBadge = 'bg-danger';
+            statusText = 'ملغي';
+        }
+
+        return `
+        <tr>
+            <td class="ps-4">#${order.id.substring(0, 8)}</td>
+            <td>${order.user_email?.split('@')[0] || 'عميل'}</td>
+            <td>${date}</td>
+            <td><span class="badge ${statusBadge}">${statusText}</span></td>
+            <td class="fw-bold text-success">${order.total_price} EGP</td>
+            <td><a href="orders.html" class="btn btn-sm btn-outline-light">عرض</a></td>
+        </tr>`;
+    }).join('');
+}
 
 // --- PRODUCTS LOGIC ---
 const productForm = document.getElementById('addProductForm');
