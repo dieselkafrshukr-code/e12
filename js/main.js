@@ -1,13 +1,17 @@
-import { auth, db, collection, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc } from './firebase-config.js';
+import { auth, db, storage, collection, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
 
 // --- AUTH UI CHECK ---
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        if (!window.location.pathname.endsWith('index.html')) {
+        if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
             window.location.href = 'index.html';
         }
     } else {
         console.log('Logged in as:', user.email);
+        // Change displayed email
+        const adminEmail = document.querySelector('.user-profile small');
+        if (adminEmail) adminEmail.innerText = user.email;
+
         // Load dashboard stats if on dashboard page
         if (window.location.pathname.endsWith('dashboard.html')) {
             loadDashboardStats();
@@ -23,28 +27,39 @@ window.logout = async () => {
 // --- DASHBOARD STATISTICS ---
 async function loadDashboardStats() {
     try {
+        console.log('Loading dashboard stats...');
         // Get Products Count
         const productsSnapshot = await getDocs(collection(db, "products"));
         const productsCount = productsSnapshot.size;
-        document.getElementById('totalProducts').innerText = productsCount;
+
+        const prodEl = document.getElementById('totalProducts');
+        if (prodEl) prodEl.innerText = productsCount;
 
         // Get Orders Count and Total Sales
         const ordersSnapshot = await getDocs(collection(db, "orders"));
         const ordersCount = ordersSnapshot.size;
         let totalSales = 0;
+        let newOrdersCount = 0;
 
         ordersSnapshot.forEach(doc => {
             const order = doc.data();
             if (order.status === 'completed') {
                 totalSales += order.total_price || 0;
             }
+            if (order.status === 'pending') {
+                newOrdersCount++;
+            }
         });
 
-        document.getElementById('totalOrders').innerText = ordersCount;
-        document.getElementById('totalSales').innerText = totalSales.toLocaleString() + ' EGP';
+        const orderEl = document.getElementById('totalOrders');
+        if (orderEl) orderEl.innerText = newOrdersCount || ordersCount;
 
-        // Users count (placeholder - requires Auth users list which needs Admin SDK)
-        document.getElementById('totalUsers').innerText = '—';
+        const salesEl = document.getElementById('totalSales');
+        if (salesEl) salesEl.innerText = totalSales.toLocaleString() + ' EGP';
+
+        // Users count (placeholder)
+        const userEl = document.getElementById('totalUsers');
+        if (userEl) userEl.innerText = '—';
 
         // Load recent orders in table
         loadRecentOrders(ordersSnapshot);
@@ -64,19 +79,19 @@ function loadRecentOrders(ordersSnapshot) {
     }
 
     // Get last 5 orders
-    const orders = [];
+    const ordersList = [];
     ordersSnapshot.forEach(doc => {
-        orders.push({ id: doc.id, ...doc.data() });
+        ordersList.push({ id: doc.id, ...doc.data() });
     });
 
     // Sort by date (newest first)
-    orders.sort((a, b) => {
+    ordersList.sort((a, b) => {
         const aTime = a.created_at?.seconds || 0;
         const bTime = b.created_at?.seconds || 0;
         return bTime - aTime;
     });
 
-    const recentOrders = orders.slice(0, 5);
+    const recentOrders = ordersList.slice(0, 5);
 
     tableBody.innerHTML = recentOrders.map(order => {
         const date = order.created_at ? new Date(order.created_at.seconds * 1000).toLocaleDateString('ar-EG') : 'N/A';
@@ -111,15 +126,30 @@ if (productForm) {
 
         const btn = e.target.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري الحفظ...';
+        btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري الرفع والحفظ...';
         btn.disabled = true;
 
         try {
+            const name = document.getElementById('productName').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const desc = document.getElementById('productDesc').value;
+            const fileInput = document.getElementById('productImageFile');
+            const file = fileInput.files[0];
+
+            let imageUrl = '';
+            if (file) {
+                // 1. Upload to Storage
+                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                const uploadResult = await uploadBytes(storageRef, file);
+                imageUrl = await getDownloadURL(uploadResult.ref);
+            }
+
+            // 2. Save to Firestore
             await addDoc(collection(db, "products"), {
-                name: document.getElementById('productName').value,
-                price: parseFloat(document.getElementById('productPrice').value),
-                image: document.getElementById('productImage').value,
-                description: document.getElementById('productDesc').value,
+                name: name,
+                price: price,
+                image: imageUrl,
+                description: desc,
                 created_at: serverTimestamp()
             });
 
@@ -135,7 +165,13 @@ if (productForm) {
 
         } catch (error) {
             console.error(error);
-            Toastify({ text: "فشل الإضافة: " + error.message, style: { background: "red" } }).showToast();
+            Swal.fire({
+                title: 'خطأ!',
+                text: 'فشل في إضافة المنتج: ' + error.message,
+                icon: 'error',
+                background: '#1a202e',
+                color: '#fff'
+            });
         } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
