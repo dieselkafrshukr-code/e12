@@ -1,4 +1,4 @@
-import { auth, db, storage, collection, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+import { auth, db, collection, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc } from './firebase-config.js';
 
 // --- AUTH UI CHECK ---
 onAuthStateChanged(auth, (user) => {
@@ -125,30 +125,20 @@ if (productForm) {
         e.preventDefault();
 
         const btn = e.target.querySelector('button[type="submit"]');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري الرفع والحفظ...';
+        btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري الحفظ...';
         btn.disabled = true;
 
         try {
             const name = document.getElementById('productName').value;
             const price = parseFloat(document.getElementById('productPrice').value);
             const desc = document.getElementById('productDesc').value;
-            const fileInput = document.getElementById('productImageFile');
-            const file = fileInput.files[0];
-
-            let imageUrl = '';
-            if (file) {
-                // 1. Upload to Storage
-                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-                const uploadResult = await uploadBytes(storageRef, file);
-                imageUrl = await getDownloadURL(uploadResult.ref);
-            }
+            const imageUrl = document.getElementById('productImage').value; // Changed to direct image URL input
 
             // 2. Save to Firestore
             await addDoc(collection(db, "products"), {
                 name: name,
                 price: price,
-                image: imageUrl,
+                image: imageUrl, // Use imageUrl directly
                 description: desc,
                 created_at: serverTimestamp()
             });
@@ -167,13 +157,13 @@ if (productForm) {
             console.error(error);
             Swal.fire({
                 title: 'خطأ!',
-                text: 'فشل في إضافة المنتج: ' + error.message,
+                text: 'فشل في إضافة المنتج', // Simplified error message
                 icon: 'error',
                 background: '#1a202e',
                 color: '#fff'
             });
         } finally {
-            btn.innerHTML = originalText;
+            btn.innerHTML = 'حفظ المنتج'; // Changed button text
             btn.disabled = false;
         }
     });
