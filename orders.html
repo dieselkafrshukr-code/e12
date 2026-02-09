@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الطلبات - لوحة التحكم</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h2>لوحة التحكم</h2>
+            </div>
+
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-home"></i>
+                    <span>الرئيسية</span>
+                </a>
+                <a href="orders.html" class="nav-item active">
+                    <i class="fa-solid fa-shopping-bag"></i>
+                    <span>الطلبات</span>
+                    <span id="orders-badge" class="badge"
+                        style="background:var(--secondary-color); font-size:0.7rem; padding:2px 8px; border-radius:10px; margin-right:auto;">3</span>
+                </a>
+                <a href="products.html" class="nav-item">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>المنتجات</span>
+                </a>
+                <a href="users.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>المستخدمين</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fa-solid fa-cog"></i>
+                    <span>الإعدادات</span>
+                </a>
+            </nav>
+
+            <div class="user-profile">
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                    <div
+                        style="width: 40px; height: 40px; background: var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem;">المدير العام</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-dim);">admin@example.com</p>
+                    </div>
+                </div>
+                <button onclick="window.location.href='index.html'"
+                    style="width: 100%; margin-top: 1rem; padding: 0.5rem; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                    تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>إدارة الطلبات</h1>
+                    <p>عرض وتحديث حالات الطلبات للعملاء.</p>
+                </div>
+
+                <div class="search-box" style="width: 300px;">
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" placeholder="بحث برقم الطلب أو الهاتف..." id="orderSearch">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Orders Table -->
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>اسم العميل</th>
+                                <th>رغم الهاتف</th>
+                                <th>المبلغ</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="modal"
+        style="display: none; position: fixed; top: 0; left: 0; w-100; h-100; background: rgba(0,0,0,0.5); z-index: 1000; width: 100%; height: 100%; align-items: center; justify-content: center;">
+        <div class="modal-content glass-effect"
+            style="width: 500px; max-width: 90%; background: var(--bg-card); padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                <h3 id="modalOrderTitle">تفاصيل الطلب #123</h3>
+                <button onclick="closeModal()"
+                    style="background: none; border: none; color: var(--text-dim); cursor: pointer;"><i
+                        class="fa-solid fa-times fa-lg"></i></button>
+            </div>
+
+            <div id="modalOrderDetails">
+                <!-- Details here -->
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn-primary" style="margin: 0; flex: 1; background: var(--success);">تأكيد الطلب</button>
+                <button class="btn-primary" style="margin: 0; flex: 1; background: var(--warning);">جارى
+                    التوصيل</button>
+                <button class="btn-primary" style="margin: 0; flex: 1; background: var(--danger);">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Sample Orders Logic
+        const orders = [
+            { id: '#ORD-001', client: 'محمد أحمد', phone: '01012345678', amount: '4,500', status: 'completed', date: '2023-10-01' },
+            { id: '#ORD-002', client: 'سارة علي', phone: '01123456789', amount: '1,200', status: 'pending', date: '2023-10-02' },
+            { id: '#ORD-003', client: 'محمود حسن', phone: '01234567890', amount: '800', status: 'pending', date: '2023-10-02' },
+        ];
+
+        const tbody = document.getElementById('ordersTableBody');
+
+        function renderOrders(filter = '') {
+            tbody.innerHTML = '';
+            orders.filter(o => o.id.includes(filter) || o.phone.includes(filter) || o.client.includes(filter)).forEach(order => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.client}</td>
+                    <td>${order.phone}</td>
+                    <td>EGP ${order.amount}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}</span></td>
+                    <td>
+                        <button onclick="openOrder('${order.id}')" style="background: none; border: 1px solid var(--border-color); color: var(--text-light); padding: 0.4rem; border-radius: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-eye"></i> عرض
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderOrders();
+
+        document.getElementById('orderSearch').addEventListener('input', (e) => {
+            renderOrders(e.target.value);
+        });
+
+        // Modal Logic
+        const modal = document.getElementById('orderModal');
+
+        window.openOrder = (id) => {
+            document.getElementById('modalOrderTitle').innerText = 'تفاصيل الطلب ' + id;
+            document.getElementById('modalOrderDetails').innerHTML = `
+                <div style="display: grid; gap: 1rem;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">اسم العميل</p>
+                        <p style="font-weight: bold;">محمد أحمد</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">رقم الهاتف</p>
+                        <p style="font-weight: bold;">010xxx...</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">المنتجات</p>
+                        <p>1x ساعة ذكية</p>
+                        <p>2x جراب موبايل</p>
+                    </div>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        window.closeModal = () => {
+            modal.style.display = 'none';
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        })
+    </script>
+</body>
+
+</html>

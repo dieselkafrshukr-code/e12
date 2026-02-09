@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الرئيسية - لوحة التحكم</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h2>لوحة التحكم</h2>
+            </div>
+
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-item active">
+                    <i class="fa-solid fa-home"></i>
+                    <span>الرئيسية</span>
+                </a>
+                <a href="orders.html" class="nav-item">
+                    <i class="fa-solid fa-shopping-bag"></i>
+                    <span>الطلبات</span>
+                    <span class="badge"
+                        style="background:var(--secondary-color); font-size:0.7rem; padding:2px 8px; border-radius:10px; margin-right:auto;">3</span>
+                </a>
+                <a href="products.html" class="nav-item">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>المنتجات</span>
+                </a>
+                <a href="users.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>المستخدمين</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fa-solid fa-cog"></i>
+                    <span>الإعدادات</span>
+                </a>
+            </nav>
+
+            <div class="user-profile">
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                    <div
+                        style="width: 40px; height: 40px; background: var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem;">المدير العام</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-dim);">admin@example.com</p>
+                    </div>
+                </div>
+                <button onclick="window.location.href='index.html'"
+                    style="width: 100%; margin-top: 1rem; padding: 0.5rem; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                    تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>نظرة عامة</h1>
+                    <p>مرحباً بك، إليك آخر إحصائيات المتجر اليوم.</p>
+                </div>
+
+                <div class="actions">
+                    <button class="btn-primary" style="margin:0; width: auto; padding: 0.6rem 1.2rem;">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>منتج جديد</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-blue">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                        </div>
+                        <span style="color: var(--success); font-size: 0.8rem;">+12% <i
+                                class="fa-solid fa-arrow-up"></i></span>
+                    </div>
+                    <div class="stat-value">EGP 24,500</div>
+                    <div class="stat-label">إجمالي المبيعات</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-purple">
+                            <i class="fa-solid fa-shopping-cart"></i>
+                        </div>
+                        <span style="color: var(--success); font-size: 0.8rem;">+5% <i
+                                class="fa-solid fa-arrow-up"></i></span>
+                    </div>
+                    <div class="stat-value">145</div>
+                    <div class="stat-label">الطلبات المكتملة</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-orange">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+                        <span style="color: var(--danger); font-size: 0.8rem;">-2% <i
+                                class="fa-solid fa-arrow-down"></i></span>
+                    </div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">قيد التوصيل</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-green">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <span style="color: var(--success); font-size: 0.8rem;">+8% <i
+                                class="fa-solid fa-arrow-up"></i></span>
+                    </div>
+                    <div class="stat-value">850</div>
+                    <div class="stat-label">عميل جديد</div>
+                </div>
+            </div>
+
+            <!-- Recent Orders Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>أحدث الطلبات</h3>
+                    <a href="orders.html"
+                        style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem;">عرض الكل</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>العميل</th>
+                                <th>المنتجات</th>
+                                <th>السعر</th>
+                                <th>الحالة</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#ORD-001</td>
+                                <td>أحمد محمد</td>
+                                <td>ساعة ذكية Apple Watch</td>
+                                <td>EGP 4,500</td>
+                                <td><span class="status-badge status-completed">مكتمل</span></td>
+                                <td>منذ 2 ساعة</td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-002</td>
+                                <td>سارة علي</td>
+                                <td>سماعة بلوتوث Sony</td>
+                                <td>EGP 1,200</td>
+                                <td><span class="status-badge status-pending">قيد الانتظار</span></td>
+                                <td>منذ 5 ساعات</td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-003</td>
+                                <td>خالد عمر</td>
+                                <td>لابتوب Dell Inspiron</td>
+                                <td>EGP 15,000</td>
+                                <td><span class="status-badge status-cancelled">ملغي</span></td>
+                                <td>أمس</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
