@@ -9,15 +9,13 @@ const firebaseConfig = {
     measurementId: "G-31DYDV721K"
 };
 
-// Initialize Firebase with CDN imports (No npm required)
+// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged, collection, getDocs, doc, getDoc };
+export { auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged, collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc, serverTimestamp };

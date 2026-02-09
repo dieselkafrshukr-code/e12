@@ -1,130 +1,71 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الاعدادات - لوحة التحكم</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <title>الإعدادات - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0;">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <h2>لوحة التحكم</h2>
+    <div class="d-flex" id="wrapper">
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold tracking-wide m-0">EL FAGER</h4>
+                <small class="text-white-50">لوحة التحكم</small>
             </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="products.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-box-open me-2"></i> المنتجات</a>
+                <a href="orders.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-cart-shopping me-2"></i> الطلبات</a>
+                <a href="users.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-users me-2"></i> المستخدمين</a>
+                <a href="settings.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+                <a href="#" onclick="logout()" class="list-group-item list-group-item-action text-danger mt-3">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> تسجيل خروج
+                </a>
+            </div>
+        </div>
 
-            <nav class="nav-links">
-                <a href="dashboard.html" class="nav-item">
-                    <i class="fa-solid fa-home"></i>
-                    <span>الرئيسية</span>
-                </a>
-                <a href="orders.html" class="nav-item">
-                    <i class="fa-solid fa-shopping-bag"></i>
-                    <span>الطلبات</span>
-                </a>
-                <a href="products.html" class="nav-item">
-                    <i class="fa-solid fa-box-open"></i>
-                    <span>المنتجات</span>
-                </a>
-                <a href="users.html" class="nav-item">
-                    <i class="fa-solid fa-users"></i>
-                    <span>المستخدمين</span>
-                </a>
-                <a href="settings.html" class="nav-item active">
-                    <i class="fa-solid fa-cog"></i>
-                    <span>الإعدادات</span>
-                </a>
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <button class="btn btn-outline-light d-md-none" id="menu-toggle"><i
+                        class="fa-solid fa-bars"></i></button>
+                <h5 class="mb-0 text-white fw-bold ms-3">الإعدادات العامة</h5>
             </nav>
 
-            <div class="user-profile">
-                <!-- User Profile Same as Dashboard -->
-                <div style="display: flex; align-items: center; gap: 0.8rem;">
-                    <div
-                        style="width: 40px; height: 40px; background: var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <div>
-                        <h4 style="font-size: 0.9rem;">المدير العام</h4>
-                        <p style="font-size: 0.75rem; color: var(--text-dim);">admin@example.com</p>
-                    </div>
+            <div class="container-fluid px-4 py-4">
+                <div class="glass-card p-4">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">اسم المتجر</label>
+                            <input type="text" class="form-control" value="El Fager Store">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">رسالة الترحيب</label>
+                            <textarea class="form-control">أهلاً بك في متجر الفاجر</textarea>
+                        </div>
+                        <button class="btn btn-primary">حفظ التغييرات</button>
+                    </form>
                 </div>
-                <button onclick="window.location.href='index.html'"
-                    style="width: 100%; margin-top: 1rem; padding: 0.5rem; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-                    تسجيل الخروج
-                </button>
             </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="page-title">
-                    <h1>إعدادات المتجر</h1>
-                    <p>التحكم في مصاريف الشحن ورسائل الموقع.</p>
-                </div>
-
-                <div class="actions">
-                    <button class="btn-primary" style="margin:0; width: auto; padding: 0.6rem 1.2rem;">
-                        <i class="fa-solid fa-save"></i>
-                        <span>حفظ التغييرات</span>
-                    </button>
-                </div>
-            </header>
-
-            <div style="max-width: 800px;">
-
-                <!-- Shipping Settings -->
-                <div class="stat-card" style="margin-bottom: 2rem;">
-                    <h3 style="margin-bottom: 1.5rem; font-size: 1.2rem;">إعدادات الشحن</h3>
-
-                    <div class="input-group">
-                        <label>سعر الشحن الأساسي (EGP)</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-truck"></i>
-                            <input type="number" value="50">
-                        </div>
-                        <p style="color: var(--text-dim); font-size: 0.8rem; margin-top: 0.5rem;">هذا السعر سيتم تطبيقه
-                            على جميع الطلبات.</p>
-                    </div>
-
-                    <div class="input-group">
-                        <label>حد الشحن المجاني (EGP)</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-gift"></i>
-                            <input type="number" value="1000">
-                        </div>
-                        <p style="color: var(--text-dim); font-size: 0.8rem; margin-top: 0.5rem;">الطلبات التي تتجاوز
-                            هذا المبلغ ستحصل على شحن مجاني.</p>
-                    </div>
-                </div>
-
-                <!-- Banner Settings -->
-                <div class="stat-card">
-                    <h3 style="margin-bottom: 1.5rem; font-size: 1.2rem;">رسالة الموقع (Banner)</h3>
-
-                    <div class="input-group">
-                        <label>نص الرسالة الترويجية</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-bullhorn"></i>
-                            <input type="text" value="شحن مجاني لجميع الطلبات فوق 1000 جنيه لفترة محدودة!">
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </main>
+        </div>
     </div>
-
-    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script>
+        document.getElementById("menu-toggle").onclick = function () {
+            document.getElementById("wrapper").classList.toggle("toggled");
+        };
+    </script>
 </body>
 
 </html>
