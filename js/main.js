@@ -174,7 +174,7 @@ async function loadDashboardStats() {
         generateSmartInsights(productsSnapshot, ordersSnapshot);
 
         // Update Goal Tracking
-        updateGoalTracking(totalSalesValue);
+        updateGoalTracking(totalSales);
 
     } catch (error) {
         console.error('Error loading dashboard stats:', error);

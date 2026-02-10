@@ -67,21 +67,22 @@ async function loadProducts() {
         displayProducts(allProducts);
     } catch (error) {
         console.error('Error loading products:', error);
-        const tbody = document.getElementById('productsTableBody');
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">فشل تحميل المنتجات</td></tr>';
+        const grid = document.getElementById('productsGrid');
+        if (grid) grid.innerHTML = '<tr><td colspan="10" class="text-center text-danger">فشل تحميل المنتجات</td></tr>';
     }
 }
 
 // ==================== DISPLAY PRODUCTS ====================
 function displayProducts(products) {
-    const tbody = document.getElementById('productsTableBody');
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
 
     if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-white-50">لا توجد منتجات</td></tr>';
+        grid.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-white-50">لا توجد منتجات</td></tr>';
         return;
     }
 
-    tbody.innerHTML = products.map(p => {
+    grid.innerHTML = products.map(p => {
         const stock = p.stock || 0;
         const minStock = p.min_stock || 5;
         const totalSold = p.total_sold || 0;
@@ -280,7 +281,6 @@ document.getElementById('productImages')?.addEventListener('change', function (e
 });
 
 // ==================== ADD/EDIT PRODUCT ====================
-// ==================== ADD/EDIT PRODUCT ====================
 const productForm = document.getElementById('productForm');
 
 async function checkDuplicateName(name) {
@@ -408,8 +408,11 @@ productForm?.addEventListener('submit', async (e) => {
             Toastify({ text: "تم إضافة المنتج بنجاح!", style: { background: "green" } }).showToast();
         }
 
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
-        modal.hide();
+        // Close Modal safely
+        const modalEl = document.getElementById('addProductModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modalInstance.hide();
+
         productForm.reset();
         document.getElementById('imagesPreview').innerHTML = '';
         editingProductId = null;

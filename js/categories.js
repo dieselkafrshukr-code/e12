@@ -98,8 +98,9 @@ document.getElementById('categoryForm')?.addEventListener('submit', async (e) =>
             Toastify({ text: "تم إضافة الفئة بنجاح!", style: { background: "green" } }).showToast();
         }
 
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addCategoryModal'));
-        modal.hide();
+        const modalEl = document.getElementById('addCategoryModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modalInstance.hide();
         e.target.reset();
         editingCategoryId = null;
         loadCategories();
