@@ -4,12 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المنتجات - لوحة التحكم</title>
-    <!-- CSS -->
+    <title>الفئات - لوحة التحكم</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 
 <body>
@@ -24,12 +23,18 @@
             <div class="list-group list-group-flush my-3">
                 <a href="dashboard.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-house me-2"></i> الرئيسية</a>
-                <a href="products.html" class="list-group-item list-group-item-action active"><i
+                <a href="products-enhanced.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-box-open me-2"></i> المنتجات</a>
                 <a href="orders.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-cart-shopping me-2"></i> الطلبات</a>
-                <a href="users.html" class="list-group-item list-group-item-action"><i
-                        class="fa-solid fa-users me-2"></i> المستخدمين</a>
+                <a href="categories.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-tags me-2"></i> الفئات</a>
+                <a href="customers.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-users me-2"></i> العملاء</a>
+                <a href="coupons.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-ticket me-2"></i> الكوبونات</a>
+                <a href="reports.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-chart-line me-2"></i> التقارير</a>
                 <a href="settings.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-gear me-2"></i> الإعدادات</a>
                 <a href="#" onclick="logout()" class="list-group-item list-group-item-action text-danger mt-3">
@@ -43,73 +48,69 @@
             <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
                 <button class="btn btn-outline-light d-md-none" id="menu-toggle"><i
                         class="fa-solid fa-bars"></i></button>
-                <h5 class="mb-0 text-white fw-bold ms-3">إدارة المنتجات</h5>
+                <h5 class="mb-0 text-white fw-bold ms-3">إدارة الفئات</h5>
             </nav>
 
             <div class="container-fluid px-4 py-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="fw-bold text-white">قائمة المنتجات</h4>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                        <i class="fa-solid fa-plus me-2"></i> إضافة منتج جديد
+                    <h4 class="fw-bold text-white">الفئات</h4>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="fa-solid fa-plus me-2"></i> إضافة فئة جديدة
                     </button>
                 </div>
 
-                <!-- Products Grid -->
-                <div class="row g-4" id="productsGrid">
-                    <!-- Products will be loaded here -->
+                <!-- Categories Grid -->
+                <div class="row g-4" id="categoriesGrid">
                     <div class="col-12 text-center py-5">
                         <div class="spinner-border text-primary" role="status"></div>
-                        <p class="text-white-50 mt-2">جاري تحميل المنتجات...</p>
+                        <p class="text-white-50 mt-2">جاري تحميل الفئات...</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Add Product Modal -->
-    <div class="modal fade" id="addProductModal" tabindex="-1">
+    <!-- Add/Edit Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">إضافة منتج جديد</h5>
+                    <h5 class="modal-title fw-bold">إضافة فئة جديدة</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addProductForm">
+                    <form id="categoryForm">
+                        <input type="hidden" id="categoryId">
                         <div class="mb-3">
-                            <label class="form-label">اسم المنتج</label>
-                            <input type="text" class="form-control" id="productName" required>
+                            <label class="form-label">اسم الفئة</label>
+                            <input type="text" class="form-control" id="categoryName" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">السعر (ج.م)</label>
-                            <input type="number" class="form-control" id="productPrice" required>
+                            <label class="form-label">الأيقونة (Font Awesome)</label>
+                            <input type="text" class="form-control" id="categoryIcon" placeholder="fa-solid fa-cookie"
+                                value="fa-solid fa-box">
+                            <small class="text-muted">ابحث عن الأيقونة من <a href="https://fontawesome.com/icons"
+                                    target="_blank">Font Awesome</a></small>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">صورة المنتج</label>
-                            <input type="file" class="form-control" id="productImage" accept="image/*" required>
-                            <div class="form-text text-white-50">اختر صورة المنتج من جهازك (JPG, PNG, WebP)</div>
-                            <!-- Preview Image -->
-                            <div id="imagePreview" class="mt-3" style="display:none;">
-                                <img id="previewImg" src=""
-                                    style="max-width: 100%; max-height: 200px; border-radius: 8px;">
-                            </div>
+                            <label class="form-label">الترتيب</label>
+                            <input type="number" class="form-control" id="categoryOrder" value="1" min="1">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">الوصف</label>
-                            <textarea class="form-control" id="productDesc" rows="3"></textarea>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="categoryActive" checked>
+                            <label class="form-check-label">فئة نشطة</label>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">حفظ المنتج</button>
+                        <button type="submit" class="btn btn-primary w-100">حفظ الفئة</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/categories.js"></script>
     <script>
         document.getElementById("menu-toggle").onclick = function () {
             document.getElementById("wrapper").classList.toggle("toggled");

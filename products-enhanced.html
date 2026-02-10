@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنتجات المحسنة - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold tracking-wide m-0">EL FAGER</h4>
+                <small class="text-white-50">لوحة التحكم</small>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="products-enhanced.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-box-open me-2"></i> المنتجات</a>
+                <a href="orders.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-cart-shopping me-2"></i> الطلبات</a>
+                <a href="categories.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-tags me-2"></i> الفئات</a>
+                <a href="customers.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-users me-2"></i> العملاء</a>
+                <a href="coupons.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-ticket me-2"></i> الكوبونات</a>
+                <a href="reports.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-chart-line me-2"></i> التقارير</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+                <a href="#" onclick="logout()" class="list-group-item list-group-item-action text-danger mt-3">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> تسجيل خروج
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <button class="btn btn-outline-light d-md-none" id="menu-toggle"><i
+                        class="fa-solid fa-bars"></i></button>
+                <h5 class="mb-0 text-white fw-bold ms-3">إدارة المنتجات المحسنة</h5>
+            </nav>
+
+            <div class="container-fluid px-4 py-4">
+                <!-- Toolbar -->
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            <i class="fa-solid fa-plus me-2"></i> إضافة منتج جديد
+                        </button>
+                        <button class="btn btn-success" onclick="exportProducts()">
+                            <i class="fa-solid fa-file-excel me-2"></i> تصدير Excel
+                        </button>
+                    </div>
+
+                    <!-- Search & Filter -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <select class="form-select" id="categoryFilter" style="width: 200px;">
+                            <option value="">جميع الفئات</option>
+                        </select>
+                        <select class="form-select" id="stockFilter" style="width: 200px;">
+                            <option value="">كل المنتجات</option>
+                            <option value="in_stock">متوفر</option>
+                            <option value="low_stock">مخزون منخفض</option>
+                            <option value="out_of_stock">نفذ</option>
+                        </select>
+                        <input type="text" class="form-control" id="searchInput" placeholder="بحث..."
+                            style="width: 250px;">
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="glass-card">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0 align-middle">
+                            <thead class="bg-darker">
+                                <tr>
+                                    <th class="ps-4">الصورة</th>
+                                    <th>المنتج</th>
+                                    <th>الفئة</th>
+                                    <th>السعر</th>
+                                    <th>المخزون</th>
+                                    <th>المبيعات</th>
+                                    <th>الحالة</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-white-50">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <p class="mt-2">جاري تحميل المنتجات...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">إضافة منتج جديد</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="productId">
+
+                        <!-- معلومات أساسية -->
+                        <h6 class="text-primary mb-3"><i class="fa-solid fa-info-circle me-2"></i>معلومات أساسية</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">اسم المنتج *</label>
+                                <input type="text" class="form-control" id="productName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الفئة *</label>
+                                <select class="form-select" id="productCategory" required>
+                                    <option value="">اختر الفئة</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">الوصف</label>
+                                <textarea class="form-control" id="productDesc" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- الأسعار -->
+                        <h6 class="text-success mb-3"><i class="fa-solid fa-money-bill me-2"></i>الأسعار والأرباح</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">سعر الشراء (ج.م)</label>
+                                <input type="number" class="form-control" id="productCostPrice" value="0" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">سعر البيع (ج.م) *</label>
+                                <input type="number" class="form-control" id="productPrice" required step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">الربح</label>
+                                <input type="text" class="form-control" id="profitDisplay" readonly>
+                            </div>
+                        </div>
+
+                        <!-- الخصم -->
+                        <h6 class="text-warning mb-3"><i class="fa-solid fa-percent me-2"></i>الخصم</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">نسبة الخصم (%)</label>
+                                <input type="number" class="form-control" id="productDiscount" value="0" min="0"
+                                    max="100">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">السعر بعد الخصم</label>
+                                <input type="text" class="form-control" id="discountedPriceDisplay" readonly>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">تاريخ انتهاء العرض</label>
+                                <input type="date" class="form-control" id="discountEndDate">
+                            </div>
+                        </div>
+
+                        <!-- المخزون -->
+                        <h6 class="text-info mb-3"><i class="fa-solid fa-boxes-stacked me-2"></i>المخزون</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">الكمية المتوفرة *</label>
+                                <input type="number" class="form-control" id="productStock" value="0" required min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">حد التنبيه</label>
+                                <input type="number" class="form-control" id="productMinStock" value="5" min="0">
+                                <small class="text-muted">سيتم تنبيهك عند النزول عن هذا العدد</small>
+                            </div>
+                        </div>
+
+                        <!-- الصور -->
+                        <h6 class="text-danger mb-3"><i class="fa-solid fa-images me-2"></i>الصور</h6>
+                        <div class="mb-3">
+                            <label class="form-label">صور المنتج (يمكن اختيار عدة صور)</label>
+                            <input type="file" class="form-control" id="productImages" accept="image/*" multiple>
+                            <small class="text-muted">الصورة الأولى ستكون الصورة الرئيسية</small>
+
+                            <!-- Preview Images -->
+                            <div id="imagesPreview" class="row g-2 mt-3"></div>
+                        </div>
+
+                        <!-- خيارات -->
+                        <h6 class="text-secondary mb-3"><i class="fa-solid fa-sliders me-2"></i>خيارات</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="productActive" checked>
+                                    <label class="form-check-label" for="productActive">
+                                        متاح للبيع
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="productFeatured">
+                                    <label class="form-check-label" for="productFeatured">
+                                        منتج مميز
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">حفظ المنتج</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="js/products-enhanced.js"></script>
+    <script>
+        document.getElementById("menu-toggle").onclick = function () {
+            document.getElementById("wrapper").classList.toggle("toggled");
+        };
+
+        // حساب الربح تلقائياً
+        document.getElementById('productCostPrice')?.addEventListener('input', calculateProfit);
+        document.getElementById('productPrice')?.addEventListener('input', calculateProfit);
+
+        function calculateProfit() {
+            const cost = parseFloat(document.getElementById('productCostPrice').value) || 0;
+            const price = parseFloat(document.getElementById('productPrice').value) || 0;
+            const profit = price - cost;
+            const profitPercent = cost > 0 ? ((profit / cost) * 100).toFixed(1) : 0;
+
+            document.getElementById('profitDisplay').value = `${profit.toFixed(2)} ج.م (${profitPercent}%)`;
+        }
+
+        // حساب السعر بعد الخصم
+        document.getElementById('productPrice')?.addEventListener('input', calculateDiscount);
+        document.getElementById('productDiscount')?.addEventListener('input', calculateDiscount);
+
+        function calculateDiscount() {
+            const price = parseFloat(document.getElementById('productPrice').value) || 0;
+            const discount = parseFloat(document.getElementById('productDiscount').value) || 0;
+            const discounted = price - (price * discount / 100);
+
+            document.getElementById('discountedPriceDisplay').value = `${discounted.toFixed(2)} ج.م`;
+        }
+    </script>
+</body>
+
+</html>

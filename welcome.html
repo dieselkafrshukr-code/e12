@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرحباً - لوحة التحكم</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .welcome-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .welcome-card {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .action-btn i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .action-btn h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .action-btn p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .primary {
+            color: #6366f1;
+        }
+
+        .success {
+            color: #10b981;
+        }
+
+        .warning {
+            color: #f59e0b;
+        }
+
+        .danger {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body class="auth-body">
+    <div class="welcome-container">
+        <div class="welcome-card glass-effect" style="padding: 40px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div class="logo-icon" style="margin: 0 auto 20px;">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h1 style="margin: 0 0 10px 0;">مرحباً بك في لوحة التحكم</h1>
+                <p style="color: rgba(255,255,255,0.7); margin: 0;">اختر ما تريد القيام به</p>
+            </div>
+
+            <div class="action-grid">
+                <a href="index.html" class="action-btn">
+                    <i class="fa-solid fa-right-to-bracket primary"></i>
+                    <h4>تسجيل الدخول</h4>
+                    <p>للمدراء الموجودين</p>
+                </a>
+
+                <a href="setup.html" class="action-btn">
+                    <i class="fa-solid fa-gears success"></i>
+                    <h4>إعداد النظام</h4>
+                    <p>إنشاء حساب مدير جديد</p>
+                </a>
+
+                <a href="clear-data.html" class="action-btn">
+                    <i class="fa-solid fa-trash-can danger"></i>
+                    <h4>مسح البيانات</h4>
+                    <p>البدء من الصفر</p>
+                </a>
+            </div>
+
+            <div
+                style="margin-top: 40px; padding: 20px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
+                <h5 style="margin: 0 0 15px 0; color: #6366f1;">
+                    <i class="fa-solid fa-circle-info"></i> للمستخدمين الجدد:
+                </h5>
+                <ol style="margin: 0; padding-right: 20px; color: rgba(255,255,255,0.8); line-height: 1.8;">
+                    <li>اضغط على <strong>"مسح البيانات"</strong> لحذف البيانات القديمة</li>
+                    <li>اضغط على <strong>"إعداد النظام"</strong> لإنشاء حساب مدير جديد</li>
+                    <li>سيتم توجيهك تلقائياً للوحة التحكم</li>
+                    <li>ابدأ في إضافة المنتجات!</li>
+                </ol>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="QUICK_START.md"
+                    style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem;">
+                    <i class="fa-solid fa-book"></i> دليل البدء السريع
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

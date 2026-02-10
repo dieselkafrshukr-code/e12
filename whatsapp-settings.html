@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات WhatsApp - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold m-0">EL FAGER</h4>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="products-enhanced.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-box-open me-2"></i> المنتجات</a>
+                <a href="orders.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-cart-shopping me-2"></i> الطلبات</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+                <a href="whatsapp-settings.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-brands fa-whatsapp me-2"></i> WhatsApp</a>
+                <a href="#" onclick="logout()" class="list-group-item list-group-item-action text-danger mt-3"><i
+                        class="fa-solid fa-right-from-bracket me-2"></i> خروج</a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <button class="btn btn-outline-light d-md-none" id="menu-toggle"><i
+                        class="fa-solid fa-bars"></i></button>
+                <h5 class="mb-0 text-white fw-bold ms-3">
+                    <i class="fa-brands fa-whatsapp text-success me-2"></i>
+                    إعدادات WhatsApp Business
+                </h5>
+            </nav>
+
+            <div class="container-fluid px-4 py-4">
+                <!-- Connection Status -->
+                <div class="glass-card mb-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="text-white mb-2">
+                                <i class="fa-solid fa-plug me-2"></i>
+                                حالة الاتصال
+                            </h5>
+                            <p class="text-muted mb-0">قم بربط حساب WhatsApp Business الخاص بك</p>
+                        </div>
+                        <div>
+                            <span id="connectionStatus" class="badge bg-secondary">غير متصل</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Settings -->
+                <div class="row g-4 mb-4">
+                    <!-- API Configuration -->
+                    <div class="col-md-6">
+                        <div class="glass-card p-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fa-solid fa-key me-2"></i>
+                                إعدادات API
+                            </h6>
+                            <form id="apiSettingsForm">
+                                <div class="mb-3">
+                                    <label class="form-label">رقم WhatsApp البزنس</label>
+                                    <input type="tel" class="form-control" id="whatsappNumber"
+                                        placeholder="+201234567890">
+                                    <small class="text-muted">مثال: +201234567890</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">API Token</label>
+                                    <input type="password" class="form-control" id="apiToken"
+                                        placeholder="Enter your API token">
+                                    <small class="text-muted">احصل عليه من WhatsApp Business API أو Twilio</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">API Provider</label>
+                                    <select class="form-select" id="apiProvider">
+                                        <option value="">اختر المزود</option>
+                                        <option value="twilio">Twilio</option>
+                                        <option value="messagebird">MessageBird</option>
+                                        <option value="whatsapp-official">WhatsApp Business API</option>
+                                        <option value="custom">مخصص</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fa-solid fa-check me-2"></i>
+                                    حفظ الإعدادات
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Auto-Send Settings -->
+                    <div class="col-md-6">
+                        <div class="glass-card p-4">
+                            <h6 class="text-success mb-3">
+                                <i class="fa-solid fa-robot me-2"></i>
+                                الإرسال التلقائي
+                            </h6>
+                            <form id="autoSendSettings">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoOrderConfirmation" checked>
+                                    <label class="form-check-label">
+                                        تأكيد الطلب تلقائياً
+                                        <small class="d-block text-muted">عند إنشاء طلب جديد</small>
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoShippingUpdate" checked>
+                                    <label class="form-check-label">
+                                        إشعار الشحن تلقائياً
+                                        <small class="d-block text-muted">عند تغيير حالة الطلب لـ "جاري التوصيل"</small>
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoDeliveryConfirmation"
+                                        checked>
+                                    <label class="form-check-label">
+                                        تأكيد التسليم تلقائياً
+                                        <small class="d-block text-muted">عند تغيير حالة الطلب لـ "تم التسليم"</small>
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoLowStockAlert">
+                                    <label class="form-check-label">
+                                        تنبيه المخزون المنخفض
+                                        <small class="d-block text-muted">إرسال تنبيه للمدير</small>
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fa-solid fa-save me-2"></i>
+                                    حفظ التفضيلات
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Templates -->
+                <div class="glass-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="text-white mb-0">
+                            <i class="fa-solid fa-message me-2"></i>
+                            قوالب الرسائل
+                        </h5>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#addTemplateModal">
+                            <i class="fa-solid fa-plus me-2"></i>
+                            إضافة قالب
+                        </button>
+                    </div>
+
+                    <!-- Templates List -->
+                    <div class="row g-3" id="templatesGrid">
+                        <!-- Order Confirmation Template -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-success">
+                                <div class="card-header bg-success text-white">
+                                    <i class="fa-solid fa-check-circle me-2"></i>
+                                    تأكيد الطلب
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">المتغيرات المتاحة:</label>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <code class="badge bg-secondary">{{order_id}}</code>
+                                            <code class="badge bg-secondary">{{customer_name}}</code>
+                                            <code class="badge bg-secondary">{{total_price}}</code>
+                                            <code class="badge bg-secondary">{{store_name}}</code>
+                                        </div>
+                                    </div>
+                                    <textarea class="form-control bg-dark text-white border-secondary" rows="5"
+                                        id="templateOrderConfirmation">مرحباً {{customer_name}} 👋
+
+تم استلام طلبك بنجاح! 🎉
+
+📦 رقم الطلب: #{{order_id}}
+💰 الإجمالي: {{total_price}} ج.م
+
+سنقوم بالتواصل معك قريباً لتأكيد التفاصيل.
+
+شكراً لثقتك في {{store_name}} ❤️</textarea>
+                                    <button class="btn btn-sm btn-outline-info mt-3"
+                                        onclick="testTemplate('order_confirmation')">
+                                        <i class="fa-solid fa-paper-plane me-2"></i>
+                                        اختبار الرسالة
+                                    </button>
+                                    <button class="btn btn-sm btn-success mt-3"
+                                        onclick="saveTemplate('order_confirmation')">
+                                        <i class="fa-solid fa-save me-2"></i>
+                                        حفظ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shipping Update Template -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fa-solid fa-truck me-2"></i>
+                                    تحديث الشحن
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">المتغيرات المتاحة:</label>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <code class="badge bg-secondary">{{order_id}}</code>
+                                            <code class="badge bg-secondary">{{customer_name}}</code>
+                                            <code class="badge bg-secondary">{{tracking_number}}</code>
+                                        </div>
+                                    </div>
+                                    <textarea class="form-control bg-dark text-white border-secondary" rows="5"
+                                        id="templateShippingUpdate">مرحباً {{customer_name}} 👋
+
+طلبك #{{order_id}} في الطريق إليك! 🚚
+
+نتوقع وصوله خلال 1-2 يوم عمل.
+
+يمكنك تتبع الشحنة من خلال:
+{{tracking_link}}
+
+نشكرك على صبرك 🙏</textarea>
+                                    <button class="btn btn-sm btn-outline-info mt-3"
+                                        onclick="testTemplate('shipping_update')">
+                                        <i class="fa-solid fa-paper-plane me-2"></i>
+                                        اختبار
+                                    </button>
+                                    <button class="btn btn-sm btn-success mt-3"
+                                        onclick="saveTemplate('shipping_update')">
+                                        <i class="fa-solid fa-save me-2"></i>
+                                        حفظ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Confirmation Template -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-success">
+                                <div class="card-header bg-success text-white">
+                                    <i class="fa-solid fa-box-check me-2"></i>
+                                    تأكيد التسليم
+                                </div>
+                                <div class="card-body">
+                                    <textarea class="form-control bg-dark text-white border-secondary" rows="5"
+                                        id="templateDeliveryConfirmation">مرحباً {{customer_name}} 👋
+
+تم تسليم طلبك #{{order_id}} بنجاح! ✅
+
+نتمنى أن تكون راضياً عن المنتجات 😊
+
+يسعدنا تقييمك:
+{{review_link}}
+
+شكراً لاختيارك {{store_name}} ❤️
+نتطلع لخدمتك مرة أخرى!</textarea>
+                                    <button class="btn btn-sm btn-outline-info mt-3"
+                                        onclick="testTemplate('delivery_confirmation')">
+                                        <i class="fa-solid fa-paper-plane me-2"></i>
+                                        اختبار
+                                    </button>
+                                    <button class="btn btn-sm btn-success mt-3"
+                                        onclick="saveTemplate('delivery_confirmation')">
+                                        <i class="fa-solid fa-save me-2"></i>
+                                        حفظ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Low Stock Alert Template -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                    تنبيه مخزون منخفض
+                                </div>
+                                <div class="card-body">
+                                    <textarea class="form-control bg-dark text-white border-secondary" rows="5"
+                                        id="templateLowStockAlert">⚠️ تنبيه مخزون منخفض!
+
+المنتج: {{product_name}}
+الكمية المتبقية: {{stock}} قطعة فقط
+
+يرجى إعادة التوريد قريباً.
+
+📊 {{dashboard_link}}</textarea>
+                                    <button class="btn btn-sm btn-outline-info mt-3"
+                                        onclick="testTemplate('low_stock_alert')">
+                                        <i class="fa-solid fa-paper-plane me-2"></i>
+                                        اختبار
+                                    </button>
+                                    <button class="btn btn-sm btn-success mt-3"
+                                        onclick="saveTemplate('low_stock_alert')">
+                                        <i class="fa-solid fa-save me-2"></i>
+                                        حفظ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="glass-card p-4">
+                    <h5 class="text-white mb-4">
+                        <i class="fa-solid fa-bolt me-2"></i>
+                        إجراءات سريعة
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-success w-100" onclick="sendBulkMessage()">
+                                <i class="fa-solid fa-paper-plane me-2"></i>
+                                إرسال رسالة جماعية
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-primary w-100" onclick="viewMessageHistory()">
+                                <i class="fa-solid fa-history me-2"></i>
+                                سجل الرسائل
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-info w-100" onclick="openWhatsAppGuide()">
+                                <i class="fa-solid fa-book me-2"></i>
+                                دليل الإعداد
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="module" src="js/whatsapp-settings.js"></script>
+    <script>
+        document.getElementById("menu-toggle")?.onclick = function () {
+            document.getElementById("wrapper").classList.toggle("toggled");
+        };
+    </script>
+</body>
+
+</html>

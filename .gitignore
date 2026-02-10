@@ -1,0 +1,6 @@
+موقع/
+.gemini/
+.agent/
+node_modules/
+.DS_Store
+Thumbs.db

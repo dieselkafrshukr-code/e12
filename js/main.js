@@ -1,4 +1,4 @@
-import { auth, db, collection, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc } from './firebase-config.js';
+import { auth, db, storage, collection, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
 
 // --- AUTH UI CHECK ---
 onAuthStateChanged(auth, (user) => {
@@ -121,6 +121,25 @@ function loadRecentOrders(ordersSnapshot) {
 // --- PRODUCTS LOGIC ---
 const productForm = document.getElementById('addProductForm');
 if (productForm) {
+    // Image Preview
+    const imageInput = document.getElementById('productImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -132,13 +151,25 @@ if (productForm) {
             const name = document.getElementById('productName').value;
             const price = parseFloat(document.getElementById('productPrice').value);
             const desc = document.getElementById('productDesc').value;
-            const imageUrl = document.getElementById('productImage').value; // Changed to direct image URL input
+            const imageFile = document.getElementById('productImage').files[0];
+
+            if (!imageFile) {
+                throw new Error('الرجاء اختيار صورة المنتج');
+            }
+
+            // 1. Upload image to Firebase Storage
+            const timestamp = Date.now();
+            const imageName = `products/${timestamp}_${imageFile.name}`;
+            const storageRef = ref(storage, imageName);
+
+            await uploadBytes(storageRef, imageFile);
+            const imageUrl = await getDownloadURL(storageRef);
 
             // 2. Save to Firestore
             await addDoc(collection(db, "products"), {
                 name: name,
                 price: price,
-                image: imageUrl, // Use imageUrl directly
+                image: imageUrl,
                 description: desc,
                 created_at: serverTimestamp()
             });
@@ -150,6 +181,7 @@ if (productForm) {
 
             // Reset Form and Reload
             productForm.reset();
+            imagePreview.style.display = 'none';
             Toastify({ text: "تم إضافة المنتج بنجاح!", style: { background: "green" } }).showToast();
             loadProducts();
 
@@ -157,13 +189,13 @@ if (productForm) {
             console.error(error);
             Swal.fire({
                 title: 'خطأ!',
-                text: 'فشل في إضافة المنتج', // Simplified error message
+                text: error.message || 'فشل في إضافة المنتج',
                 icon: 'error',
                 background: '#1a202e',
                 color: '#fff'
             });
         } finally {
-            btn.innerHTML = 'حفظ المنتج'; // Changed button text
+            btn.innerHTML = 'حفظ المنتج';
             btn.disabled = false;
         }
     });

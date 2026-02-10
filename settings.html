@@ -43,7 +43,8 @@
             </nav>
 
             <div class="container-fluid px-4 py-4">
-                <div class="glass-card p-4">
+                <div class="glass-card p-4 mb-4">
+                    <h4 class="fw-bold text-white mb-4">الإعدادات العامة</h4>
                     <form>
                         <div class="mb-3">
                             <label class="form-label">اسم المتجر</label>
@@ -55,6 +56,23 @@
                         </div>
                         <button class="btn btn-primary">حفظ التغييرات</button>
                     </form>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="glass-card p-4" style="border: 2px solid #f44336;">
+                    <h4 class="fw-bold text-danger mb-3">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        منطقة خطرة
+                    </h4>
+                    <div style="background: rgba(244,67,54,0.1); border-radius: 8px; padding: 20px;">
+                        <h6 class="text-white mb-2">مسح جميع البيانات</h6>
+                        <p class="text-white-50 mb-3">احذف جميع المنتجات والطلبات والبيانات من النظام. هذه العملية لا
+                            يمكن التراجع عنها!</p>
+                        <a href="clear-data.html" class="btn btn-danger">
+                            <i class="fa-solid fa-trash-can me-2"></i>
+                            مسح جميع البيانات
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
