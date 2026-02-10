@@ -294,10 +294,12 @@ if (productForm) {
             // Log Activity
             await logActivity('إضافة منتج', { name: name, price: price });
 
-            // Close Modal
+            // Close Modal Safely
             const modalEl = document.getElementById('addProductModal');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            modalInstance.hide();
+            if (modalEl) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modalInstance.hide();
+            }
 
             // Reset Form and Reload
             productForm.reset();
