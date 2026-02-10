@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز المعرفة والإجراءات - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold tracking-wide m-0">EL FAGER</h4>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="knowledge.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-book-open me-2"></i> دليل الموظف (SOP)</a>
+                <a href="operations.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-microchip me-2"></i> مركز العمليات</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+            </div>
+        </div>
+
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <h5 class="mb-0 text-white fw-bold">إجراءات التشغيل والمعرفة (SOP & Knowledge)</h5>
+                <button class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#addKnowledgeModal">
+                    <i class="fa-solid fa-plus me-2"></i> إضافة تعليمات جديدة
+                </button>
+            </nav>
+
+            <div class="container-fluid px-4 py-4">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="glass-card p-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-0 text-white-50"><i
+                                        class="fa-solid fa-magnifying-glass"></i></span>
+                                <input type="text" id="knowledgeSearch"
+                                    class="form-control bg-transparent border-0 text-white shadow-none"
+                                    placeholder="ابحث في دليل التشغيل...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4" id="knowledgeGrid">
+                    <!-- Loaded via JS -->
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="text-white-50 mt-2">جاري تحميل دليل التشغيل...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="addKnowledgeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content glass-card border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold">إضافة تعليمات / SOP</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="knowledgeForm">
+                        <div class="mb-3">
+                            <label class="form-label">العنوان (مثلاً: كيفية التعامل مع المرتجعات)</label>
+                            <input type="text" id="kTitle" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">التصنيف</label>
+                            <select id="kCategory" class="form-select">
+                                <option value="orders">الطلبات</option>
+                                <option value="products">المنتجات</option>
+                                <option value="customers">خدمة العملاء</option>
+                                <option value="technical">تقني / إدارة</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">المحتوى / الخطوات التفصيلية</label>
+                            <textarea id="kContent" class="form-control" rows="10"
+                                placeholder="اكتب الخطوات بالتفصيل هنا..." required></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-outline-light me-2"
+                                data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-primary px-4">حفظ الدليل</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { db, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, serverTimestamp, onAuthStateChanged, auth } from './js/firebase-config.js';
+        import { logActivity } from './js/main.js';
+
+        const kForm = document.getElementById('knowledgeForm');
+        const kGrid = document.getElementById('knowledgeGrid');
+        const kSearch = document.getElementById('knowledgeSearch');
+        let allKnowledge = [];
+
+        async function loadKnowledge() {
+            try {
+                const storeId = window.currentStoreId || 'default';
+                const q = query(collection(db, "knowledge_base"), where("storeId", "==", storeId), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+
+                allKnowledge = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderKnowledge(allKnowledge);
+            } catch (e) {
+                console.error(e);
+                kGrid.innerHTML = '<div class="col-12 text-center text-danger">فشل تحميل البيانات</div>';
+            }
+        }
+
+        function renderKnowledge(data) {
+            if (data.length === 0) {
+                kGrid.innerHTML = '<div class="col-12 text-center py-5 text-white-50">لا يوجد محتوى حالياً. قم بإضافة أول دليل تشغيل!</div>';
+                return;
+            }
+
+            kGrid.innerHTML = data.map(k => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="glass-card h-100 p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">${k.category}</span>
+                            <div class="btn-group">
+                                <button onclick="deleteKnowledge('${k.id}')" class="btn btn-sm text-danger"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold text-white mb-3">${k.title}</h5>
+                        <p class="text-white-50 small mb-4 text-truncate-3" style="white-space: pre-wrap;">${k.content}</p>
+                        <div class="mt-auto d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                            <small class="text-white-50"><i class="fa-solid fa-clock me-1"></i> ${k.timestamp ? new Date(k.timestamp.seconds * 1000).toLocaleDateString('ar-EG') : '...'}</small>
+                            <button onclick="viewKnowledge('${k.id}')" class="btn btn-sm btn-outline-light">اقرأ المزيد</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        kForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+
+            try {
+                const data = {
+                    title: document.getElementById('kTitle').value,
+                    category: document.getElementById('kCategory').value,
+                    content: document.getElementById('kContent').value,
+                    storeId: window.currentStoreId || 'default',
+                    timestamp: serverTimestamp(),
+                    createdBy: auth.currentUser.email
+                };
+
+                await addDoc(collection(db, "knowledge_base"), data);
+                await logActivity('إضافة دليل تشغيل (SOP)', { title: data.title });
+
+                Toastify({ text: "تم إضافة الدليل بنجاح", style: { background: "green" } }).showToast();
+                bootstrap.Modal.getInstance(document.getElementById('addKnowledgeModal')).hide();
+                kForm.reset();
+                loadKnowledge();
+            } catch (e) {
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        window.viewKnowledge = (id) => {
+            const k = allKnowledge.find(item => item.id === id);
+            Swal.fire({
+                title: k.title,
+                html: `<div class="text-start text-white p-3" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;">${k.content}</div>`,
+                background: '#1a202e',
+                color: '#fff',
+                confirmButtonText: 'إغلاق',
+                width: '700px'
+            });
+        };
+
+        window.deleteKnowledge = async (id) => {
+            const result = await Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: 'سيتم حذف هذا الدليل نهائياً',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، احذف',
+                cancelButtonText: 'إلغاء',
+                background: '#1a202e', color: '#fff'
+            });
+
+            if (result.isConfirmed) {
+                await deleteDoc(doc(db, "knowledge_base", id));
+                Toastify({ text: "تم الحذف", style: { background: "orange" } }).showToast();
+                loadKnowledge();
+            }
+        };
+
+        kSearch.oninput = (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allKnowledge.filter(k =>
+                k.title.toLowerCase().includes(term) ||
+                k.category.toLowerCase().includes(term) ||
+                k.content.toLowerCase().includes(term)
+            );
+            renderKnowledge(filtered);
+        };
+
+        window.addEventListener('load', () => {
+            setTimeout(loadKnowledge, 1000);
+        });
+    </script>
+    <style>
+        .text-truncate-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</body>
+
+</html>

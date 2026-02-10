@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطط الاشتراك - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold tracking-wide m-0">EL FAGER</h4>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="subscription.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-crown me-2"></i> خطة الاشتراك</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <h5 class="mb-0 text-white fw-bold">إدارة الاشتراكات</h5>
+            </nav>
+
+            <div class="container-fluid px-4 py-5">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold text-white">اختر الخطة المناسبة لنمو تجارتك</h2>
+                    <p class="text-white-50">أسعار شفافة وبسيطة، تناسب جميع أحجام المتاجر</p>
+                </div>
+
+                <div class="row g-4 justify-content-center">
+                    <!-- Free Plan -->
+                    <div class="col-md-4">
+                        <div class="glass-card p-4 h-100 text-center border border-secondary">
+                            <h4 class="fw-bold mb-3">المجانية (Free)</h4>
+                            <h1 class="fw-bold mb-4">0 <small style="font-size: 1rem;">ج.م / شهر</small></h1>
+                            <ul class="list-unstyled text-start mb-5">
+                                <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> حتى 50 منتج</li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> 1 متجر فقط</li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> تقارير أساسية</li>
+                                <li class="mb-2 text-white-50"><i class="fa-solid fa-xmark text-danger me-2"></i>
+                                    WhatsApp Auto</li>
+                            </ul>
+                            <button class="btn btn-outline-light w-100" disabled>خطتك الحالية</button>
+                        </div>
+                    </div>
+
+                    <!-- Pro Plan -->
+                    <div class="col-md-4">
+                        <div class="glass-card p-4 h-100 text-center border border-warning"
+                            style="transform: scale(1.05); z-index: 1;">
+                            <div class="badge bg-warning text-dark mb-3">الأكثر طلباً</div>
+                            <h4 class="fw-bold mb-3">المحترفة (Pro)</h4>
+                            <h1 class="fw-bold mb-4">499 <small style="font-size: 1rem;">ج.م / شهر</small></h1>
+                            <ul class="list-unstyled text-start mb-5">
+                                <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i> منتجات غير محدودة
+                                </li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i> حتى 3 متاجر</li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i> WhatsApp Auto
+                                    (الأساسي)</li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i> تقارير ذكية (AI)
+                                </li>
+                            </ul>
+                            <button class="btn btn-warning w-100 fw-bold">ترقية الآن</button>
+                        </div>
+                    </div>
+
+                    <!-- Business Plan -->
+                    <div class="col-md-4">
+                        <div class="glass-card p-4 h-100 text-center border border-primary">
+                            <h4 class="fw-bold mb-3">الأعمال (Business)</h4>
+                            <h1 class="fw-bold mb-4">999 <small style="font-size: 1rem;">ج.م / شهر</small></h1>
+                            <ul class="list-unstyled text-start mb-5">
+                                <li class="mb-2"><i class="fa-solid fa-check text-primary me-2"></i> كل شيء في Pro</li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-primary me-2"></i> متاجر غير محدودة
+                                </li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-primary me-2"></i> WhatsApp AI (متقدم)
+                                </li>
+                                <li class="mb-2"><i class="fa-solid fa-check text-primary me-2"></i> White-Label support
+                                </li>
+                            </ul>
+                            <button class="btn btn-primary w-100 fw-bold">ترقية الآن</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

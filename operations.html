@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز العمليات - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold tracking-wide m-0">EL FAGER</h4>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="operations.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-microchip me-2"></i> مركز العمليات</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+            </div>
+        </div>
+
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <div class="d-flex align-items-center w-100">
+                    <h5 class="mb-0 text-white fw-bold">مركز العمليات (Operations Center)</h5>
+                    <div class="ms-auto d-flex gap-2">
+                        <button onclick="toggleUIDensity()" class="btn btn-sm btn-outline-light"
+                            title="تغيير شكل العرض">
+                            <i class="fa-solid fa-compress"></i>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid px-4 py-4">
+                <div class="row g-4">
+                    <!-- Maintenance Mode -->
+                    <div class="col-md-4">
+                        <div class="glass-card p-4 h-100">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-screwdriver-wrench text-warning me-2"></i>
+                                وضع الصيانة</h5>
+                            <p class="text-white-50 small mb-4">تفعيل هذا الوضع سيمنع العملاء من تصفح المتجر وإتمام
+                                الطلبات مؤقتاً.</p>
+
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="maintenanceSwitch">
+                                <label class="form-check-label text-white" for="maintenanceSwitch">تفعيل وضع
+                                    الصيانة</label>
+                            </div>
+
+                            <div id="maintenanceDetails" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label small">رسالة الصيانة</label>
+                                    <textarea id="maintenanceMsg" class="form-control form-control-sm"
+                                        rows="2">نحن نقوم ببعض التحسينات، سنعود قريباً!</textarea>
+                                </div>
+                                <button id="btnSaveMaintenance" class="btn btn-sm btn-warning w-100 fw-bold">حفظ
+                                    الإعدادات</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Health -->
+                    <div class="col-md-8">
+                        <div class="glass-card p-4 h-100">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-heart-pulse text-danger me-2"></i> صحة النظام
+                                (Health Check)</h5>
+                            <div class="row g-3" id="healthStats">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-darker rounded-3 text-center border border-success">
+                                        <div class="text-white-50 small mb-1">قاعدة البيانات</div>
+                                        <div class="text-success fw-bold">متصل <i class="fa-solid fa-circle-check"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-darker rounded-3 text-center border border-success">
+                                        <div class="text-white-50 small mb-1">مركز التخزين</div>
+                                        <div class="text-success fw-bold">يعمل <i class="fa-solid fa-circle-check"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-darker rounded-3 text-center border border-success">
+                                        <div class="text-white-50 small mb-1">سرعة الاستجابة</div>
+                                        <div class="text-success fw-bold">ممتاز (45ms)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="border-secondary my-4">
+
+                            <h6 class="fw-bold text-white mb-3">تسجيل عطل (Incident Report)</h6>
+                            <form id="incidentForm" class="row g-2">
+                                <div class="col-md-6">
+                                    <input type="text" id="incidentTitle" class="form-control"
+                                        placeholder="عنوان العطل..." required>
+                                </div>
+                                <div class="col-md-4">
+                                    <select id="incidentSeverity" class="form-select">
+                                        <option value="low">منخفض</option>
+                                        <option value="medium">متوسط</option>
+                                        <option value="high">حرج</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-danger w-100">بلاغ</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Incidents List -->
+                    <div class="col-12">
+                        <div class="glass-card p-4">
+                            <h5 class="fw-bold mb-4"><i class="fa-solid fa-list-check text-info me-2"></i> الأعطال
+                                المسجلة والحلول</h5>
+                            <div class="table-responsive">
+                                <table class="table table-dark align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>التاريخ</th>
+                                            <th>العطل</th>
+                                            <th>الخطورة</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراء</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="incidentsTable">
+                                        <!-- Loaded via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Decision Logs -->
+                    <div class="col-12 mt-4">
+                        <div class="glass-card p-4">
+                            <h5 class="fw-bold mb-4"><i class="fa-solid fa-gavel text-primary me-2"></i> سجل القرارات
+                                الإدارية (Decision Logs)</h5>
+                            <form id="decisionForm" class="row g-2 mb-4">
+                                <div class="col-md-10">
+                                    <input type="text" id="decisionText" class="form-control"
+                                        placeholder="لماذا اتخذنا هذا القرار؟..." required>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100">تسجيل</button>
+                                </div>
+                            </form>
+                            <div id="decisionHistory" class="small text-white-50">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="module">
+        import { db, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, updateDoc, serverTimestamp } from './js/firebase-config.js';
+        import { logActivity } from './js/main.js';
+
+        const storeId = window.currentStoreId || 'default';
+
+        // --- MAINTENANCE MODE ---
+        const mSwitch = document.getElementById('maintenanceSwitch');
+        const mDetails = document.getElementById('maintenanceDetails');
+
+        async function loadMaintenanceStatus() {
+            const docSnap = await getDoc(doc(db, "settings", `${storeId}_maintenance`));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                mSwitch.checked = data.enabled;
+                document.getElementById('maintenanceMsg').value = data.message || '';
+                mDetails.style.display = data.enabled ? 'block' : 'none';
+            }
+        }
+
+        mSwitch.onchange = () => {
+            mDetails.style.display = mSwitch.checked ? 'block' : 'none';
+        };
+
+        document.getElementById('btnSaveMaintenance').onclick = async () => {
+            await setDoc(doc(db, "settings", `${storeId}_maintenance`), {
+                enabled: mSwitch.checked,
+                message: document.getElementById('maintenanceMsg').value,
+                updatedBy: 'admin',
+                updatedAt: serverTimestamp()
+            });
+            await logActivity('تحديث وضع الصيانة', { enabled: mSwitch.checked });
+            Toastify({ text: "تم تحديث الإعدادات", style: { background: "blue" } }).showToast();
+        };
+
+        // --- INCIDENT MANAGEMENT ---
+        const incidentForm = document.getElementById('incidentForm');
+        incidentForm.onsubmit = async (e) => {
+            e.preventDefault();
+            await addDoc(collection(db, "incidents"), {
+                storeId,
+                title: document.getElementById('incidentTitle').value,
+                severity: document.getElementById('incidentSeverity').value,
+                status: 'open',
+                timestamp: serverTimestamp()
+            });
+            incidentForm.reset();
+            loadIncidents();
+            Toastify({ text: "تم تسجيل العطل", style: { background: "red" } }).showToast();
+        };
+
+        async function loadIncidents() {
+            const q = query(collection(db, "incidents"), where("storeId", "==", storeId), orderBy("timestamp", "desc"));
+            const snapshot = await getDocs(q);
+            const tbody = document.getElementById('incidentsTable');
+
+            tbody.innerHTML = snapshot.docs.map(docSnap => {
+                const inc = docSnap.data();
+                const date = inc.timestamp ? new Date(inc.timestamp.seconds * 1000).toLocaleString('ar-EG') : '...';
+                const severityBadge = inc.severity === 'high' ? 'bg-danger' : (inc.severity === 'medium' ? 'bg-warning text-dark' : 'bg-info text-dark');
+                const statusBadge = inc.status === 'open' ? 'bg-outline-danger border border-danger p-1 rounded' : 'bg-success p-1 rounded';
+
+                return `
+                <tr>
+                    <td><small>${date}</small></td>
+                    <td>${inc.title}</td>
+                    <td><span class="badge ${severityBadge}">${inc.severity}</span></td>
+                    <td><span class="small ${statusBadge}">${inc.status === 'open' ? 'نشط' : 'محلول'}</span></td>
+                    <td>
+                        ${inc.status === 'open' ? `<button onclick="resolveIncident('${docSnap.id}')" class="btn btn-sm btn-outline-success">تم الحل</button>` : '<i class="fa-solid fa-check-double text-success"></i>'}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.resolveIncident = async (id) => {
+            await updateDoc(doc(db, "incidents", id), { status: 'resolved', resolvedAt: serverTimestamp() });
+            loadIncidents();
+            Toastify({ text: "تم تحديث الحالة", style: { background: "green" } }).showToast();
+        };
+
+        window.addEventListener('load', () => {
+            loadMaintenanceStatus();
+            setTimeout(() => {
+                loadIncidents();
+                loadDecisions();
+            }, 1000);
+        });
+
+        // --- DECISION LOGS ---
+        const decisionForm = document.getElementById('decisionForm');
+        decisionForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const text = document.getElementById('decisionText').value;
+            await addDoc(collection(db, "decisions"), {
+                storeId,
+                text,
+                user: 'Admin',
+                timestamp: serverTimestamp()
+            });
+            decisionForm.reset();
+            loadDecisions();
+            Toastify({ text: "تم تسجيل القرار", style: { background: "green" } }).showToast();
+        };
+
+        async function loadDecisions() {
+            const q = query(collection(db, "decisions"), where("storeId", "==", storeId), orderBy("timestamp", "desc"));
+            const snap = await getDocs(q);
+            const div = document.getElementById('decisionHistory');
+            div.innerHTML = snap.docs.map(d => {
+                const dec = d.data();
+                const dDate = dec.timestamp ? new Date(dec.timestamp.seconds * 1000).toLocaleString('ar-EG') : '...';
+                return `<div class="mb-2 pb-2 border-bottom border-secondary">
+                    <span class="text-white">${dec.text}</span>
+                    <div class="x-small text-white-50 mt-1"><i class="fa-solid fa-clock me-1"></i> ${dDate}</div>
+                </div>`;
+            }).join('') || 'لا يوجد قرارات مسجلة.';
+        }
+    </script>
+</body>
+
+</html>

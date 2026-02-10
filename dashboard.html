@@ -31,23 +31,30 @@
             </div>
 
             <div class="list-group list-group-flush my-3">
-                <a href="dashboard.html" class="list-group-item list-group-item-action active">
-                    <i class="fa-solid fa-house me-2"></i> الرئيسية
-                </a>
-                <a href="products.html" class="list-group-item list-group-item-action">
-                    <i class="fa-solid fa-box-open me-2"></i> المنتجات
-                </a>
-                <a href="orders.html" class="list-group-item list-group-item-action">
-                    <i class="fa-solid fa-cart-shopping me-2"></i> الطلبات
-                </a>
-                <a href="users.html" class="list-group-item list-group-item-action">
-                    <i class="fa-solid fa-users me-2"></i> المستخدمين
-                </a>
-                <a href="settings.html" class="list-group-item list-group-item-action">
-                    <i class="fa-solid fa-gear me-2"></i> الإعدادات
-                </a>
+                <a href="dashboard.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="operations.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-microchip me-2"></i> العمليات</a>
+                <a href="products-enhanced.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-box-open me-2"></i> المنتجات</a>
+                <a href="orders.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-cart-shopping me-2"></i> الطلبات</a>
+                <a href="categories.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-tags me-2"></i> الفئات</a>
+                <a href="activity-log.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-clock-rotate-left me-2"></i> سجل العمليات</a>
+                <a href="backup.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-database me-2"></i> النسخ الاحتياطي</a>
+                <a href="customers.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-users me-2"></i> العملاء</a>
+                <a href="coupons.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-ticket me-2"></i> الكوبونات</a>
+                <a href="reports.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-chart-line me-2"></i> التقارير</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
                 <a href="#" onclick="logout()" class="list-group-item list-group-item-action text-danger mt-3">
-                    <i class="fa-solid fa-right-from-bracket me-2"></i> تسجيل د خروج
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> تسجيل خروج
                 </a>
             </div>
         </div>
@@ -133,6 +140,45 @@
                                     <i class="fa-solid fa-users fa-xl"></i>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goal Tracking & Progress -->
+                <div class="row g-4 mb-5">
+                    <div class="col-md-12">
+                        <div class="glass-card p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="fw-bold text-white mb-1"><i
+                                            class="fa-solid fa-bullseye text-danger me-2"></i> تتبع الأهداف (Target
+                                        Sales)</h5>
+                                    <p class="text-white-50 small mb-0">معدل الإنجاز بناءً على مبيعات الشهر الحالي</p>
+                                </div>
+                                <button onclick="setRevenueGoal()" class="btn btn-sm btn-outline-primary">تعديل
+                                    الهدف</button>
+                            </div>
+                            <div class="progress bg-dark" style="height: 12px; border-radius: 6px;">
+                                <div id="goalProgressBar"
+                                    class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                    style="width: 0%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2 small text-white-50">
+                                <span>الحالي: <strong id="currentSalesDisplay">0</strong> ج.م</span>
+                                <span>الهدف: <strong id="targetSalesDisplay">0</strong> ج.م</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Smart Insights -->
+                <div class="glass-card mb-4 p-4">
+                    <h5 class="fw-bold text-white mb-4"><i class="fa-solid fa-wand-magic-sparkles text-info me-2"></i>
+                        تقارير ذكية (AI Insights)</h5>
+                    <div id="smartInsights">
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-info"></div>
+                            <span class="ms-2 text-white-50">جاري تحليل البيانات...</span>
                         </div>
                     </div>
                 </div>

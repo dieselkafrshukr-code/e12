@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة البيانات - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold tracking-wide m-0">EL FAGER</h4>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+                <a href="backup.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-database me-2"></i> النسخ الاحتياطي</a>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <h5 class="mb-0 text-white fw-bold">إدارة البيانات (Backup & Restore)</h5>
+            </nav>
+
+            <div class="container-fluid px-4 py-4">
+                <div class="row g-4">
+                    <!-- Export Box -->
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 h-100">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3">
+                                    <i class="fa-solid fa-download text-primary fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-1">نسخ احتياطي (Export)</h4>
+                                    <p class="text-white-50 mb-0">قم بتنزيل كافة بياناتك بضغطة واحدة</p>
+                                </div>
+                            </div>
+
+                            <ul class="list-group list-group-flush mb-4 opacity-75">
+                                <li class="list-group-item bg-transparent text-white border-secondary"><i
+                                        class="fa-solid fa-check text-success me-2"></i> تصدير كل المنتجات</li>
+                                <li class="list-group-item bg-transparent text-white border-secondary"><i
+                                        class="fa-solid fa-check text-success me-2"></i> تصدير كل الأقسام</li>
+                                <li class="list-group-item bg-transparent text-white border-secondary"><i
+                                        class="fa-solid fa-check text-success me-2"></i> تصدير كل الطلبات</li>
+                            </ul>
+
+                            <button id="btnExport" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
+                                <i class="fa-solid fa-file-export me-2"></i> بدء تحضير النسخة الاحتياطية
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Import Box -->
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 h-100">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-warning bg-opacity-10 p-3 rounded-3 me-3">
+                                    <i class="fa-solid fa-upload text-warning fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-1">استعادة البيانات (Restore)</h4>
+                                    <p class="text-white-50 mb-0">قم برفع ملف JSON لاستعادة البيانات</p>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-danger border-0 bg-danger bg-opacity-10 mb-4">
+                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                <strong>تنبيه:</strong> رفع ملف الاستعادة سيقوم بدمج البيانات مع الموجودة حالياً.
+                            </div>
+
+                            <div class="mb-4">
+                                <input type="file" id="importFile" class="form-control" accept=".json">
+                            </div>
+
+                            <button id="btnRestore" class="btn btn-warning w-100 py-3 fw-bold shadow-sm text-dark">
+                                <i class="fa-solid fa-clock-rotate-left me-2"></i> استعادة النسخة المرفوعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="module">
+        import { db, collection, getDocs, addDoc, serverTimestamp } from './js/firebase-config.js';
+        import { logActivity } from './js/main.js';
+
+        // --- EXPORT LOGIC ---
+        document.getElementById('btnExport').onclick = async function () {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري جمع البيانات...';
+
+            try {
+                const storeId = window.currentStoreId || 'default';
+                const backupData = {
+                    metadata: {
+                        timestamp: new Date().toISOString(),
+                        storeId: storeId,
+                        version: '1.0'
+                    },
+                    collections: {}
+                };
+
+                const collectionsToExport = ['products', 'categories', 'orders'];
+
+                for (const colName of collectionsToExport) {
+                    const snapshot = await getDocs(collection(db, colName));
+                    backupData.collections[colName] = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Only export data owned by current store (simple multi-tenancy)
+                        if (data.storeId === storeId) {
+                            backupData.collections[colName].push({ id: doc.id, ...data });
+                        }
+                    });
+                }
+
+                // Download JSON
+                const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `backup_${storeId}_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+
+                await logActivity('نسخة احتياطية', { type: 'full_export' });
+                Toastify({ text: "تم تصدير النسخة الاحتياطية بنجاح!", style: { background: "green" } }).showToast();
+
+            } catch (error) {
+                console.error(error);
+                alert('فشل تصدير البيانات: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-file-export me-2"></i> بدء تحضير النسخة الاحتياطية';
+            }
+        };
+
+        // --- RESTORE LOGIC ---
+        document.getElementById('btnRestore').onclick = async function () {
+            const fileInput = document.getElementById('importFile');
+            if (!fileInput.files[0]) {
+                alert('الرجاء اختيار ملف أولاً');
+                return;
+            }
+
+            if (!confirm('هل أنت متأكد؟ قد يؤدي هذا لتكرار بعض البيانات في حال وجودها مسبقاً.')) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري الاستعادة...';
+
+            try {
+                const file = fileInput.files[0];
+                const content = await file.text();
+                const backupData = JSON.parse(content);
+
+                const storeId = window.currentStoreId || 'default';
+
+                if (backupData.collections) {
+                    for (const [colName, docs] of Object.entries(backupData.collections)) {
+                        console.log(`Restoring ${colName}...`);
+                        for (const docData of docs) {
+                            const { id, ...dataWithoutId } = docData;
+                            // Reset key markers or timestamps if needed
+                            dataWithoutId.restored_at = serverTimestamp();
+                            dataWithoutId.storeId = storeId; // Re-enforce current storeId
+
+                            await addDoc(collection(db, colName), dataWithoutId);
+                        }
+                    }
+                }
+
+                await logActivity('استعادة بيانات', { filename: file.name });
+                Toastify({ text: "تمت استعادة البيانات بنجاح!", style: { background: "green" } }).showToast();
+                fileInput.value = '';
+
+            } catch (error) {
+                console.error(error);
+                alert('فشل استعادة البيانات: ' + (error.name === 'SyntaxError' ? 'تنسيق الملف غير صحيح' : error.message));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left me-2"></i> استعادة النسخة المرفوعة';
+            }
+        };
+    </script>
+</body>
+
+</html>

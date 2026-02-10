@@ -352,3 +352,30 @@ tbody td {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+.editable-field {
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editable-field:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+body.compact-mode .glass-card {
+    padding: 0.75rem !important;
+    margin-bottom: 1rem !important;
+}
+
+body.compact-mode .table td,
+body.compact-mode .table th {
+    padding: 0.5rem !important;
+    font-size: 0.85rem !important;
+}
+
+body.compact-mode .btn-group .btn {
+    padding: 0.2rem 0.5rem !important;
+    font-size: 0.8rem;
+}

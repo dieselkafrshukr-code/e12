@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل العمليات - لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="glass-sidebar" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <i class="fa-solid fa-bolt text-warning fa-2x mb-2"></i>
+                <h4 class="fw-bold tracking-wide m-0">EL FAGER</h4>
+                <small class="text-white-50">لوحة التحكم</small>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="products-enhanced.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-box-open me-2"></i> المنتجات</a>
+                <a href="orders.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-cart-shopping me-2"></i> الطلبات</a>
+                <a href="categories.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-tags me-2"></i> الفئات</a>
+                <a href="activity-log.html" class="list-group-item list-group-item-action active"><i
+                        class="fa-solid fa-clock-rotate-left me-2"></i> سجل العمليات</a>
+                <a href="settings.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-gear me-2"></i> الإعدادات</a>
+                <a href="#" onclick="logout()" class="list-group-item list-group-item-action text-danger mt-3">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> تسجيل خروج
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark glass-nav px-4 py-3">
+                <button class="btn btn-outline-light d-md-none" id="menu-toggle"><i
+                        class="fa-solid fa-bars"></i></button>
+                <h5 class="mb-0 text-white fw-bold ms-3">سجل العمليات (Activity Log)</h5>
+            </nav>
+
+            <div class="container-fluid px-4 py-4">
+                <div class="glass-card">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0 align-middle">
+                            <thead class="bg-darker">
+                                <tr>
+                                    <th class="ps-4">المستخدم</th>
+                                    <th>الرتبة</th>
+                                    <th>العملية</th>
+                                    <th>التفاصيل</th>
+                                    <th>التاريخ والوقت</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">جاري تحميل السجلات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { auth, db, collection, query, where, getDocs, orderBy, limit } from './js/firebase-config.js';
+
+        async function loadLogs() {
+            const tbody = document.getElementById('logsTableBody');
+            try {
+                const q = query(
+                    collection(db, "activity_logs"),
+                    where("storeId", "==", window.currentStoreId || 'default'),
+                    orderBy("timestamp", "desc"),
+                    limit(50)
+                );
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-white-50">لا توجد عمليات مسجلة</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = snapshot.docs.map(doc => {
+                    const log = doc.data();
+                    const date = log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleString('ar-EG') : 'N/A';
+
+                    let badgeClass = 'bg-primary';
+                    if (log.action.includes('حذف')) badgeClass = 'bg-danger';
+                    if (log.action.includes('تعديل')) badgeClass = 'bg-warning text-dark';
+                    if (log.action.includes('إضافة')) badgeClass = 'bg-success';
+
+                    return `
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">${log.userName}</div>
+                            <small class="text-white-50">${log.userEmail}</small>
+                        </td>
+                        <td><span class="badge bg-secondary">${log.role}</span></td>
+                        <td><span class="badge ${badgeClass}">${log.action}</span></td>
+                        <td><small>${JSON.stringify(log.details)}</small></td>
+                        <td>${date}</td>
+                    </tr>`;
+                }).join('');
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">فشل تحميل السجلات. ملاحظة: قد تحتاج لإنشاء Index في Firebase Firestore.</td></tr>';
+            }
+        }
+
+        window.addEventListener('load', () => {
+            // Need to wait for main.js to initialize window.currentStoreId
+            setTimeout(loadLogs, 1000);
+        });
+
+        document.getElementById("menu-toggle").onclick = function () {
+            document.getElementById("wrapper").classList.toggle("toggled");
+        };
+    </script>
+</body>
+
+</html>

@@ -23,12 +23,18 @@
             <div class="list-group list-group-flush my-3">
                 <a href="dashboard.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-house me-2"></i> الرئيسية</a>
+                <a href="operations.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-microchip me-2"></i> العمليات</a>
                 <a href="products-enhanced.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-box-open me-2"></i> المنتجات</a>
                 <a href="orders.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-cart-shopping me-2"></i> الطلبات</a>
                 <a href="categories.html" class="list-group-item list-group-item-action active"><i
                         class="fa-solid fa-tags me-2"></i> الفئات</a>
+                <a href="activity-log.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-clock-rotate-left me-2"></i> سجل العمليات</a>
+                <a href="backup.html" class="list-group-item list-group-item-action"><i
+                        class="fa-solid fa-database me-2"></i> النسخ الاحتياطي</a>
                 <a href="customers.html" class="list-group-item list-group-item-action"><i
                         class="fa-solid fa-users me-2"></i> العملاء</a>
                 <a href="coupons.html" class="list-group-item list-group-item-action"><i
@@ -84,6 +90,12 @@
                         <div class="mb-3">
                             <label class="form-label">اسم الفئة</label>
                             <input type="text" class="form-control" id="categoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">الفئة الأم (اختياري)</label>
+                            <select class="form-select" id="parentCategory">
+                                <option value="">بدون فئة أم (فئة رئيسية)</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">الأيقونة (Font Awesome)</label>

@@ -1,13 +1,71 @@
-import { auth, db, storage, collection, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+import { auth, db, storage, collection, getDocs, doc, getDoc, setDoc, query, where, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+import { ROLES, hasPermission } from './roles.js';
+import { initCommandPalette } from './command-palette.js';
+
+// Global System State
+window.currentUserData = null;
+window.currentStoreId = localStorage.getItem('activeStoreId') || 'default';
+
+// Init UI Features
+applyUIDensity();
+initCommandPalette();
+
+// --- OBSERVABILITY: Global Error Tracking ---
+window.onerror = async function (msg, url, lineNo, columnNo, error) {
+    if (window.db) {
+        try {
+            await addDoc(collection(db, "incidents"), {
+                storeId: window.currentStoreId || 'default',
+                title: `Auto-Error: ${msg}`,
+                severity: 'medium',
+                status: 'open',
+                details: { url, lineNo, columnNo, stack: error?.stack },
+                timestamp: serverTimestamp(),
+                type: 'system_error'
+            });
+        } catch (e) {
+            console.error('Failed to log auto-error:', e);
+        }
+    }
+    return false;
+};
 
 // --- AUTH UI CHECK ---
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (!user) {
         if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
             window.location.href = 'index.html';
         }
     } else {
         console.log('Logged in as:', user.email);
+
+        // Fetch User Metadata (Role, Store, etc)
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                window.currentUserData = userDoc.data();
+            } else {
+                // Initialize default user if not exists (First Login)
+                window.currentUserData = {
+                    email: user.email,
+                    role: ROLES.ADMIN, // First user is Admin
+                    storeId: 'default',
+                    subscription: 'free',
+                    created_at: serverTimestamp()
+                };
+                await setDoc(doc(db, "users", user.uid), window.currentUserData);
+            }
+
+            // Log access
+            console.log('User Role:', window.currentUserData.role);
+
+            // Update UI based on role
+            applyRoleRestrictions();
+
+        } catch (error) {
+            console.error('Error fetching user metadata:', error);
+        }
+
         // Change displayed email
         const adminEmail = document.querySelector('.user-profile small');
         if (adminEmail) adminEmail.innerText = user.email;
@@ -19,6 +77,52 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// --- ROLE BASED UI ---
+function applyRoleRestrictions() {
+    if (!window.currentUserData) return;
+
+    const role = window.currentUserData.role;
+
+    // Hide elements based on permissions
+    const restrictedElements = document.querySelectorAll('[data-permission]');
+    restrictedElements.forEach(el => {
+        const permission = el.getAttribute('data-permission');
+        if (!hasPermission(role, permission)) {
+            el.style.display = 'none';
+        }
+    });
+
+    // Sidebar protection
+    if (role === ROLES.READ_ONLY || role === ROLES.STAFF) {
+        const settingsLink = document.querySelector('a[href="settings.html"]');
+        if (settingsLink) settingsLink.style.display = 'none';
+
+        const catLink = document.querySelector('a[href="categories.html"]');
+        if (catLink && role === ROLES.READ_ONLY) catLink.style.display = 'none';
+    }
+}
+
+// --- ACTIVITY LOG LOGIC ---
+export async function logActivity(action, details = {}) {
+    if (!auth.currentUser) return;
+
+    try {
+        await addDoc(collection(db, "activity_logs"), {
+            userId: auth.currentUser.uid,
+            userEmail: auth.currentUser.email,
+            userName: window.currentUserData?.name || auth.currentUser.email.split('@')[0],
+            role: window.currentUserData?.role || 'unknown',
+            action: action,
+            details: details,
+            storeId: window.currentUserData?.storeId || 'default',
+            timestamp: serverTimestamp()
+        });
+    } catch (error) {
+        console.error('Failed to log activity:', error);
+    }
+}
+window.logActivity = logActivity;
+
 window.logout = async () => {
     await signOut(auth);
     window.location.href = 'index.html';
@@ -29,14 +133,16 @@ async function loadDashboardStats() {
     try {
         console.log('Loading dashboard stats...');
         // Get Products Count
-        const productsSnapshot = await getDocs(collection(db, "products"));
+        const productsQuery = query(collection(db, "products"), where("storeId", "==", window.currentStoreId));
+        const productsSnapshot = await getDocs(productsQuery);
         const productsCount = productsSnapshot.size;
 
         const prodEl = document.getElementById('totalProducts');
         if (prodEl) prodEl.innerText = productsCount;
 
         // Get Orders Count and Total Sales
-        const ordersSnapshot = await getDocs(collection(db, "orders"));
+        const ordersQuery = query(collection(db, "orders"), where("storeId", "==", window.currentStoreId));
+        const ordersSnapshot = await getDocs(ordersQuery);
         const ordersCount = ordersSnapshot.size;
         let totalSales = 0;
         let newOrdersCount = 0;
@@ -63,6 +169,12 @@ async function loadDashboardStats() {
 
         // Load recent orders in table
         loadRecentOrders(ordersSnapshot);
+
+        // Calculate Smart Insights
+        generateSmartInsights(productsSnapshot, ordersSnapshot);
+
+        // Update Goal Tracking
+        updateGoalTracking(totalSalesValue);
 
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
@@ -144,8 +256,9 @@ if (productForm) {
         e.preventDefault();
 
         const btn = e.target.querySelector('button[type="submit"]');
-        btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري الحفظ...';
+        btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> <span id="saveStatusMain">جاري الحفظ...</span>';
         btn.disabled = true;
+        const statusEl = document.getElementById('saveStatusMain');
 
         try {
             const name = document.getElementById('productName').value;
@@ -162,17 +275,24 @@ if (productForm) {
             const imageName = `products/${timestamp}_${imageFile.name}`;
             const storageRef = ref(storage, imageName);
 
+            if (statusEl) statusEl.innerText = 'جاري رفع الصورة...';
             await uploadBytes(storageRef, imageFile);
             const imageUrl = await getDownloadURL(storageRef);
+
+            if (statusEl) statusEl.innerText = 'جاري حفظ البيانات...';
 
             // 2. Save to Firestore
             await addDoc(collection(db, "products"), {
                 name: name,
-                price: price,
+                price: price || 0,
                 image: imageUrl,
                 description: desc,
-                created_at: serverTimestamp()
+                created_at: serverTimestamp(),
+                storeId: window.currentStoreId
             });
+
+            // Log Activity
+            await logActivity('إضافة منتج', { name: name, price: price });
 
             // Close Modal
             const modalEl = document.getElementById('addProductModal');
@@ -209,7 +329,8 @@ async function loadProducts() {
     if (!grid) return;
 
     try {
-        const snapshot = await getDocs(collection(db, "products"));
+        const productsQuery = query(collection(db, "products"), where("storeId", "==", window.currentStoreId));
+        const snapshot = await getDocs(productsQuery);
         grid.innerHTML = '';
 
         if (snapshot.empty) {
@@ -258,7 +379,8 @@ if (ordersTableBody) {
 
 async function loadOrders() {
     try {
-        const snapshot = await getDocs(collection(db, "orders"));
+        const ordersQuery = query(collection(db, "orders"), where("storeId", "==", window.currentStoreId));
+        const snapshot = await getDocs(ordersQuery);
         ordersTableBody.innerHTML = '';
 
         if (snapshot.empty) {
@@ -292,6 +414,7 @@ async function loadOrders() {
                 <td><span class="badge ${statusBadge}">${order.status}</span></td>
                 <td>
                     <div class="btn-group">
+                        <button onclick="showOrderDetails('${doc.id}')" class="btn btn-sm btn-outline-info" title="التفاصيل"><i class="fa-solid fa-eye"></i></button>
                         <button onclick="updateOrderStatus('${doc.id}', 'completed')" class="btn btn-sm btn-outline-success" title="تم التسليم"><i class="fa-solid fa-check"></i></button>
                         <button onclick="updateOrderStatus('${doc.id}', 'cancelled')" class="btn btn-sm btn-outline-danger" title="إلغاء"><i class="fa-solid fa-xmark"></i></button>
                     </div>
@@ -312,4 +435,157 @@ window.updateOrderStatus = async (id, status) => {
     } catch (error) {
         console.error(error);
     }
+};
+
+function generateSmartInsights(productsSnapshot, ordersSnapshot) {
+    const insightsContainer = document.getElementById('smartInsights');
+    if (!insightsContainer) return;
+
+    let insightsHTML = '';
+
+    // 1. Low Stock Alert
+    let lowStockCount = 0;
+    productsSnapshot.forEach(doc => {
+        const p = doc.data();
+        if ((p.stock || 0) <= (p.min_stock || 5)) lowStockCount++;
+    });
+
+    if (lowStockCount > 0) {
+        insightsHTML += `
+        <div class="alert alert-warning border-0 bg-warning bg-opacity-10 d-flex align-items-center mb-3">
+            <i class="fa-solid fa-triangle-exclamation me-3 fa-xl"></i>
+            <div>
+                <h6 class="alert-heading fw-bold mb-1">تنبيه المخزون</h6>
+                <p class="mb-0 small">يوجد ${lowStockCount} منتجات قاربت على النفاد. يفضل إعادة الطلب قريباً.</p>
+            </div>
+        </div>`;
+    }
+
+    // 2. Sales Trend Insight
+    if (ordersSnapshot.size > 0) {
+        insightsHTML += `
+        <div class="alert alert-info border-0 bg-info bg-opacity-10 d-flex align-items-center mb-3">
+            <i class="fa-solid fa-chart-line me-3 fa-xl"></i>
+            <div>
+                <h6 class="alert-heading fw-bold mb-1">اتجاه المبيعات</h6>
+                <p class="mb-0 small">لقد استقبلت ${ordersSnapshot.size} طلبات هذا الشهر. أداء مستقر!</p>
+            </div>
+        </div>`;
+    }
+
+    // 3. Peak Time Insight (Simulated logic)
+    insightsHTML += `
+    <div class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-center">
+        <i class="fa-solid fa-clock me-3 fa-xl"></i>
+        <div>
+            <h6 class="alert-heading fw-bold mb-1">أفضل وقت للبيع</h6>
+            <p class="mb-0 small">العملاء أكثر نشاطاً بين الساعة 8 مساءً و 10 مساءً. جرب نشر عروضك في هذا الوقت.</p>
+        </div>
+    </div>`;
+
+    insightsContainer.innerHTML = insightsHTML;
+}
+
+function applyUIDensity() {
+    const isCompact = localStorage.getItem('uiDensity') === 'compact';
+    document.body.classList.toggle('compact-mode', isCompact);
+}
+
+window.toggleUIDensity = () => {
+    const isCompact = document.body.classList.toggle('compact-mode');
+    localStorage.setItem('uiDensity', isCompact ? 'compact' : 'comfort');
+    Toastify({ text: isCompact ? "تم تفعيل الوضع المضغوط" : "تم تفعيل الوضع المريح", style: { background: "blue" } }).showToast();
+};
+
+async function updateGoalTracking(currentSales) {
+    try {
+        const storeId = window.currentStoreId || 'default';
+        const docSnap = await getDoc(doc(db, "settings", `${storeId}_goals`));
+        const target = docSnap.exists() ? (docSnap.data().revenueGoal || 0) : 0;
+
+        const prog = target > 0 ? Math.min((currentSales / target) * 100, 100) : 0;
+
+        const bar = document.getElementById('goalProgressBar');
+        if (bar) bar.style.width = `${prog}%`;
+
+        const curD = document.getElementById('currentSalesDisplay');
+        if (curD) curD.innerText = currentSales.toLocaleString();
+
+        const tarD = document.getElementById('targetSalesDisplay');
+        if (tarD) tarD.innerText = target.toLocaleString();
+    } catch (e) {
+        console.error('Goal track error:', e);
+    }
+}
+
+window.setRevenueGoal = async () => {
+    const { value: goal } = await Swal.fire({
+        title: 'تحديد هدف المبيعات',
+        input: 'number',
+        inputLabel: 'أدخل المبلغ المستهدف لهذا الشهر (EGP)',
+        showCancelButton: true,
+        background: '#1a202e', color: '#fff'
+    });
+
+    if (goal) {
+        const storeId = window.currentStoreId || 'default';
+        await setDoc(doc(db, "settings", `${storeId}_goals`), {
+            revenueGoal: parseFloat(goal),
+            updated_at: serverTimestamp()
+        });
+        Toastify({ text: "تم تحديث الهدف!", style: { background: "blue" } }).showToast();
+        location.reload();
+    }
+};
+
+window.showOrderDetails = async (id) => {
+    try {
+        const orderSnap = await getDoc(doc(db, "orders", id));
+        if (!orderSnap.exists()) return;
+        const order = orderSnap.data();
+
+        // Show Detail Modal (using SweetAlert2 for speed and clean look)
+        const { value: comment } = await Swal.fire({
+            title: `تفاصيل الطلب #${id.slice(-5)}`,
+            html: `
+                <div class="text-start text-white p-3">
+                    <p><strong>العميل:</strong> ${order.user_email}</p>
+                    <p><strong>الهاتف:</strong> ${order.phone}</p>
+                    <p><strong>العنوان:</strong> ${order.address}</p>
+                    <hr class="border-secondary">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">المنتجات:</label>
+                        <ul class="list-group list-group-flush bg-transparent">
+                            ${order.products.map(p => `<li class="list-group-item bg-transparent text-white border-0 py-1">- ${p.name} (x${p.qty}) - ${p.price} EGP</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="bg-darker p-3 rounded-3 mb-3">
+                        <label class="form-label fw-bold">ملاحظات العمليات:</label>
+                        <div id="orderComments" class="small text-white-50 mb-2">
+                            ${(order.comments || []).map(c => `<div class="mb-1 border-bottom border-secondary pb-1"><strong>${c.user}:</strong> ${c.text}</div>`).join('') || 'لا توجد ملاحظات'}
+                        </div>
+                    </div>
+                </div>
+            `,
+            input: 'text',
+            inputPlaceholder: 'أضف ملاحظة للموظفين...',
+            confirmButtonText: 'إرسال ملاحظة',
+            showCancelButton: true,
+            cancelButtonText: 'إغلاق',
+            background: '#1a202e',
+            color: '#fff'
+        });
+
+        if (comment) {
+            const comments = order.comments || [];
+            comments.push({
+                user: window.currentUserData?.email.split('@')[0] || 'Admin',
+                text: comment,
+                date: new Date().toISOString()
+            });
+            await updateDoc(doc(db, "orders", id), { comments: comments });
+            await logActivity('إضافة ملاحظة على طلب', { orderId: id });
+            showOrderDetails(id); // Reload modal
+        }
+    } catch (e) { console.error(e); }
 };
