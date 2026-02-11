@@ -64,5 +64,24 @@ export const supabaseData = {
             .from('settings')
             .upsert({ key: 'shipping_config', value: config, updated_at: new Date() })
         if (error) throw error
+    },
+
+    // رفع الصور إلى Supabase Storage
+    async uploadImage(file) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random()}.${fileExt}`
+        const filePath = `${fileName}`
+
+        const { data, error } = await supabase.storage
+            .from('products')
+            .upload(filePath, file)
+
+        if (error) throw error
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('products')
+            .getPublicUrl(filePath)
+
+        return publicUrl
     }
 }

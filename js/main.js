@@ -172,8 +172,7 @@ async function loadDashboardStats() {
         // Load recent orders in table
         loadRecentOrders(ordersSnapshot);
 
-        // Calculate Smart Insights
-        generateSmartInsights(productsSnapshot, ordersSnapshot);
+
 
         // Update Goal Tracking
         updateGoalTracking(totalSales);
@@ -272,14 +271,8 @@ if (productForm) {
                 throw new Error('الرجاء اختيار صورة المنتج');
             }
 
-            // 1. Upload image to Firebase Storage
-            const timestamp = Date.now();
-            const imageName = `products/${timestamp}_${imageFile.name}`;
-            const storageRef = ref(storage, imageName);
-
-            if (statusEl) statusEl.innerText = 'جاري رفع الصورة...';
-            await uploadBytes(storageRef, imageFile);
-            const imageUrl = await getDownloadURL(storageRef);
+            if (statusEl) statusEl.innerText = 'جاري رفع الصورة لـ Supabase...';
+            const imageUrl = await supabaseData.uploadImage(imageFile);
 
             if (statusEl) statusEl.innerText = 'جاري حفظ البيانات...';
 
@@ -441,54 +434,7 @@ window.updateOrderStatus = async (id, status) => {
     }
 };
 
-function generateSmartInsights(productsSnapshot, ordersSnapshot) {
-    const insightsContainer = document.getElementById('smartInsights');
-    if (!insightsContainer) return;
 
-    let insightsHTML = '';
-
-    // 1. Low Stock Alert
-    let lowStockCount = 0;
-    productsSnapshot.forEach(doc => {
-        const p = doc.data();
-        if ((p.stock || 0) <= (p.min_stock || 5)) lowStockCount++;
-    });
-
-    if (lowStockCount > 0) {
-        insightsHTML += `
-        <div class="alert alert-warning border-0 bg-warning bg-opacity-10 d-flex align-items-center mb-3">
-            <i class="fa-solid fa-triangle-exclamation me-3 fa-xl"></i>
-            <div>
-                <h6 class="alert-heading fw-bold mb-1">تنبيه المخزون</h6>
-                <p class="mb-0 small">يوجد ${lowStockCount} منتجات قاربت على النفاد. يفضل إعادة الطلب قريباً.</p>
-            </div>
-        </div>`;
-    }
-
-    // 2. Sales Trend Insight
-    if (ordersSnapshot.size > 0) {
-        insightsHTML += `
-        <div class="alert alert-info border-0 bg-info bg-opacity-10 d-flex align-items-center mb-3">
-            <i class="fa-solid fa-chart-line me-3 fa-xl"></i>
-            <div>
-                <h6 class="alert-heading fw-bold mb-1">اتجاه المبيعات</h6>
-                <p class="mb-0 small">لقد استقبلت ${ordersSnapshot.size} طلبات هذا الشهر. أداء مستقر!</p>
-            </div>
-        </div>`;
-    }
-
-    // 3. Peak Time Insight (Simulated logic)
-    insightsHTML += `
-    <div class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-center">
-        <i class="fa-solid fa-clock me-3 fa-xl"></i>
-        <div>
-            <h6 class="alert-heading fw-bold mb-1">أفضل وقت للبيع</h6>
-            <p class="mb-0 small">العملاء أكثر نشاطاً بين الساعة 8 مساءً و 10 مساءً. جرب نشر عروضك في هذا الوقت.</p>
-        </div>
-    </div>`;
-
-    insightsContainer.innerHTML = insightsHTML;
-}
 
 function applyUIDensity() {
     const isCompact = localStorage.getItem('uiDensity') === 'compact';

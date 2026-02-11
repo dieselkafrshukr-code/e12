@@ -343,19 +343,17 @@ productForm?.addEventListener('submit', async (e) => {
     const statusEl = document.getElementById('saveStatus');
 
     try {
-        // 4. Image Upload
+        // 4. Image Upload (Now focusing on Supabase Storage)
         const imageFiles = document.getElementById('productImages').files;
         let imageUrls = [];
 
         if (imageFiles.length > 0) {
             let i = 1;
             for (let file of imageFiles) {
-                if (statusEl) statusEl.innerText = `جاري رفع الصورة (${i}/${imageFiles.length})...`;
-                const timestamp = Date.now();
-                const imageName = `products/${timestamp}_${Math.random().toString(36).substr(2, 9)}_${file.name}`;
-                const storageRef = ref(storage, imageName);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
+                if (statusEl) statusEl.innerText = `جاري رفع الصورة لـ Supabase (${i}/${imageFiles.length})...`;
+
+                // الرفع لـ Supabase بدلاً من Firebase
+                const url = await supabaseData.uploadImage(file);
                 imageUrls.push(url);
                 i++;
             }
