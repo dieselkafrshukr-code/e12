@@ -1,4 +1,5 @@
-import { auth, db, storage, collection, query, where, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+import { auth, db, storage, collection, query, where, getDocs, doc, getDoc, signOut, onAuthStateChanged, addDoc, serverTimestamp, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+import { supabase, supabaseData } from './supabase-config.js';
 import { logActivity } from './main.js';
 
 // Auth Check
@@ -56,19 +57,13 @@ async function loadCategories() {
 // ==================== LOAD PRODUCTS ====================
 async function loadProducts() {
     try {
-        const q = query(collection(db, "products"), where("storeId", "==", window.currentStoreId));
-        const snapshot = await getDocs(q);
-        allProducts = [];
-
-        snapshot.forEach(doc => {
-            allProducts.push({ id: doc.id, ...doc.data() });
-        });
-
+        const products = await supabaseData.getProducts();
+        allProducts = products || [];
         displayProducts(allProducts);
     } catch (error) {
-        console.error('Error loading products:', error);
+        console.error('Error loading products from Supabase:', error);
         const grid = document.getElementById('productsGrid');
-        if (grid) grid.innerHTML = '<tr><td colspan="10" class="text-center text-danger">فشل تحميل المنتجات</td></tr>';
+        if (grid) grid.innerHTML = '<tr><td colspan="10" class="text-center text-danger">فشل تحميل المنتجات من Supabase</td></tr>';
     }
 }
 
@@ -127,7 +122,7 @@ function displayProducts(products) {
                 <input type="checkbox" class="form-check-input product-select" data-id="${p.id}">
             </td>
             <td class="ps-2">
-                <img src="${mainImage}" width="50" height="50" style="object-fit: cover; border-radius: 8px;">
+                <img src="${p.image_url || 'https://via.placeholder.com/300?text=No+Image'}" width="50" height="50" style="object-fit: cover; border-radius: 8px;">
             </td>
             <td>
                 <div class="fw-bold">${p.name}</div>
@@ -201,9 +196,9 @@ window.bulkDelete = async () => {
 
     if (result.isConfirmed) {
         for (const id of selected) {
-            await deleteDoc(doc(db, "products", id));
+            await supabaseData.deleteProduct(id);
         }
-        await logActivity('حذف بالجملة', { count: selected.length });
+        await logActivity('حذف بالجملة (Supabase)', { count: selected.length });
         Toastify({ text: "تم الحذف بنجاح", style: { background: "orange" } }).showToast();
         loadProducts();
         hideBulkBar();
@@ -215,9 +210,9 @@ window.bulkUpdateStatus = async (status) => {
     if (selected.length === 0) return;
 
     for (const id of selected) {
-        await updateDoc(doc(db, "products", id), { is_active: status, updated_at: serverTimestamp() });
+        await supabaseData.updateProduct(id, { is_active: status });
     }
-    Toastify({ text: "تم تحديث الحالة للجملة", style: { background: "green" } }).showToast();
+    Toastify({ text: "تم تحديث الحالة في Supabase", style: { background: "green" } }).showToast();
     loadProducts();
     hideBulkBar();
 };
@@ -392,20 +387,29 @@ productForm?.addEventListener('submit', async (e) => {
             productData.image = imageUrls[0];
         }
 
-        // 6. Database Operation
+        // 6. Database Operation (Supabase)
         if (editingProductId) {
-            // Backup before update
-            await saveVersionSnapshot('products', editingProductId);
-            await updateDoc(doc(db, "products", editingProductId), productData);
-            await logActivity('تعديل منتج', { name: productData.name, id: editingProductId });
-            Toastify({ text: "تم تحديث المنتج بنجاح!", style: { background: "green" } }).showToast();
+            await supabaseData.updateProduct(editingProductId, {
+                name,
+                category: document.getElementById('productCategory').value,
+                description: document.getElementById('productDesc').value || '',
+                price,
+                stock,
+                image_url: imageUrls[0] || allProducts.find(x => x.id === editingProductId)?.image_url
+            });
+            await logActivity('تعديل منتج في Supabase', { name, id: editingProductId });
+            Toastify({ text: "تم التحديث في Supabase بنجاح!", style: { background: "green" } }).showToast();
         } else {
-            productData.created_at = serverTimestamp();
-            productData.total_sold = 0;
-            productData.views = 0;
-            const newDoc = await addDoc(collection(db, "products"), productData);
-            await logActivity('إضافة منتج', { name: productData.name, id: newDoc.id });
-            Toastify({ text: "تم إضافة المنتج بنجاح!", style: { background: "green" } }).showToast();
+            await supabaseData.addProduct({
+                name,
+                category: document.getElementById('productCategory').value,
+                description: document.getElementById('productDesc').value || '',
+                price,
+                stock,
+                image_url: imageUrls[0]
+            });
+            await logActivity('إضافة منتج لـ Supabase', { name });
+            Toastify({ text: "تم الإضافة لـ Supabase بنجاح!", style: { background: "green" } }).showToast();
         }
 
         // Close Modal safely
@@ -431,13 +435,11 @@ productForm?.addEventListener('submit', async (e) => {
 window.editProduct = async (id) => {
     try {
         editingProductId = id;
-        const docSnap = await getDoc(doc(db, "products", id));
+        const p = allProducts.find(x => x.id === id);
 
-        if (!docSnap.exists()) {
-            throw new Error('المنتج غير موجود');
+        if (!p) {
+            throw new Error('المنتج غير موجود محلياً');
         }
-
-        const p = docSnap.data();
 
         // Fill form
         document.getElementById('productName').value = p.name || '';
@@ -520,9 +522,9 @@ window.deleteProduct = async (id) => {
 
     if (result.isConfirmed) {
         try {
-            await deleteDoc(doc(db, "products", id));
-            await logActivity('حذف منتج', { id: id });
-            Toastify({ text: "تم حذف المنتج بنجاح", style: { background: "orange" } }).showToast();
+            await supabaseData.deleteProduct(id);
+            await logActivity('حذف منتج من Supabase', { id: id });
+            Toastify({ text: "تم الحذف من Supabase", style: { background: "orange" } }).showToast();
             loadProducts();
         } catch (error) {
             console.error(error);

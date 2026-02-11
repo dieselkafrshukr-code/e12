@@ -1,4 +1,5 @@
-import { auth, db, storage, collection, getDocs, doc, getDoc, setDoc, query, where, signOut, onAuthStateChanged, addDoc, serverTimestamp, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+import { auth, db, storage, collection, doc, getDoc, setDoc, query, where, signOut, onAuthStateChanged, addDoc, serverTimestamp, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+import { supabase, supabaseData } from './supabase-config.js';
 import { ROLES, hasPermission } from './roles.js';
 import { initCommandPalette } from './command-palette.js';
 
@@ -131,14 +132,15 @@ window.logout = async () => {
 // --- DASHBOARD STATISTICS ---
 async function loadDashboardStats() {
     try {
-        console.log('Loading dashboard stats...');
-        // Get Products Count
-        const productsQuery = query(collection(db, "products"), where("storeId", "==", window.currentStoreId));
-        const productsSnapshot = await getDocs(productsQuery);
-        const productsCount = productsSnapshot.size;
+        // Get Products Count from Supabase
+        const { count: productsCount, error: prodError } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true });
+
+        if (prodError) throw prodError;
 
         const prodEl = document.getElementById('totalProducts');
-        if (prodEl) prodEl.innerText = productsCount;
+        if (prodEl) prodEl.innerText = productsCount || 0;
 
         // Get Orders Count and Total Sales
         const ordersQuery = query(collection(db, "orders"), where("storeId", "==", window.currentStoreId));
@@ -281,18 +283,17 @@ if (productForm) {
 
             if (statusEl) statusEl.innerText = 'جاري حفظ البيانات...';
 
-            // 2. Save to Firestore
-            await addDoc(collection(db, "products"), {
+            // 2. Save to Supabase (SQL)
+            await supabaseData.addProduct({
                 name: name,
                 price: price || 0,
-                image: imageUrl,
+                image_url: imageUrl,
                 description: desc,
-                created_at: serverTimestamp(),
-                storeId: window.currentStoreId
+                category: 'general' // يمكنك إضافة اختيار التصنيف لاحقاً
             });
 
-            // Log Activity
-            await logActivity('إضافة منتج', { name: name, price: price });
+            // Log Activity (Keep this in Firebase for now as an audit log)
+            await logActivity('إضافة منتج (Supabase)', { name: name, price: price });
 
             // Close Modal Safely
             const modalEl = document.getElementById('addProductModal');
@@ -331,45 +332,46 @@ async function loadProducts() {
     if (!grid) return;
 
     try {
-        const productsQuery = query(collection(db, "products"), where("storeId", "==", window.currentStoreId));
-        const snapshot = await getDocs(productsQuery);
+        const products = await supabaseData.getProducts();
         grid.innerHTML = '';
 
-        if (snapshot.empty) {
+        if (!products || products.length === 0) {
             grid.innerHTML = '<div class="col-12 text-center text-white-50">لا توجد منتجات حالياً.</div>';
             return;
         }
 
-        snapshot.forEach(doc => {
-            const p = doc.data();
+        products.forEach(p => {
             grid.innerHTML += `
-            <div class="col-md-3 col-sm-6">
+            <div class="col-md-3 col-sm-6 mb-4">
                 <div class="product-admin-card h-100 position-relative">
-                    <img src="${p.image || 'https://via.placeholder.com/300?text=No+Image'}" class="product-admin-img">
+                    <img src="${p.image_url || 'https://via.placeholder.com/300?text=No+Image'}" class="product-admin-img">
                     <div class="p-3">
                         <h6 class="fw-bold text-white mb-1">${p.name}</h6>
                         <div class="text-warning fw-bold mb-3">${p.price} EGP</div>
-                        <button onclick="deleteProduct('${doc.id}')" class="btn btn-sm btn-danger w-100">
-                            <i class="fa-solid fa-trash me-1"></i> حذف
-                        </button>
+                        <div class="d-flex gap-2">
+                             <button onclick="deleteProduct('${p.id}')" class="btn btn-sm btn-danger w-100">
+                                <i class="fa-solid fa-trash me-1"></i> حذف
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>`;
         });
     } catch (error) {
-        console.error(error);
+        console.error('Supabase Error:', error);
+        grid.innerHTML = '<div class="col-12 text-center text-danger">فشل تحميل المنيو من Supabase.</div>';
     }
 }
 
 window.deleteProduct = async (id) => {
     if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
     try {
-        await deleteDoc(doc(db, "products", id));
-        Toastify({ text: "تم الحذف بنجاح", style: { background: "orange" } }).showToast();
+        await supabaseData.deleteProduct(id);
+        Toastify({ text: "تم الحذف من Supabase بنجاح", style: { background: "orange" } }).showToast();
         loadProducts();
     } catch (error) {
         console.error(error);
-        alert('فشل الحذف');
+        alert('فشل الحذف من Supabase');
     }
 };
 

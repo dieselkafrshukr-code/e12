@@ -1,4 +1,5 @@
-import { auth, db, collection, query, where, orderBy, limit, getDocs, addDoc, deleteDoc, updateDoc, doc, getDoc, serverTimestamp, onAuthStateChanged, signOut } from './firebase-config.js';
+import { auth, collection, query, where, orderBy, limit, signOut, onAuthStateChanged } from './firebase-config.js';
+import { supabase } from './supabase-config.js';
 import { logActivity } from './main.js';
 
 onAuthStateChanged(auth, (user) => {
@@ -15,29 +16,28 @@ let editingCategoryId = null;
 
 async function loadCategories() {
     try {
-        const q = query(collection(db, "categories"), where("storeId", "==", window.currentStoreId));
-        const snapshot = await getDocs(q);
+        const { data: categories, error } = await supabase
+            .from('categories')
+            .select('*')
+            .order('name', { ascending: true });
+
         const grid = document.getElementById('categoriesGrid');
 
-        if (snapshot.empty) {
+        if (error) throw error;
+
+        if (!categories || categories.length === 0) {
             grid.innerHTML = '<div class="col-12 text-center py-5 text-white-50">لا توجد فئات. أضف فئة جديدة!</div>';
             return;
         }
 
-        const categories = [];
         const parentSelect = document.getElementById('parentCategory');
         if (parentSelect) parentSelect.innerHTML = '<option value="">بدون فئة أم (فئة رئيسية)</option>';
 
-        snapshot.forEach(doc => {
-            const cat = { id: doc.id, ...doc.data() };
-            categories.push(cat);
+        categories.forEach(cat => {
             if (parentSelect && !cat.parent_id) {
                 parentSelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
             }
         });
-
-        // Sort by display_order
-        categories.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
         grid.innerHTML = categories.map(cat => {
             const parentName = cat.parent_id ? (categories.find(c => c.id === cat.parent_id)?.name || '') : '';
@@ -82,20 +82,25 @@ document.getElementById('categoryForm')?.addEventListener('submit', async (e) =>
             icon: document.getElementById('categoryIcon').value,
             display_order: parseInt(document.getElementById('categoryOrder').value),
             is_active: document.getElementById('categoryActive').checked,
-            storeId: window.currentStoreId,
-            updated_at: serverTimestamp()
         };
 
         if (editingCategoryId) {
-            await saveVersionSnapshot('categories', editingCategoryId);
-            await updateDoc(doc(db, "categories", editingCategoryId), data);
-            await logActivity('تعديل قسم', { name: data.name, id: editingCategoryId });
-            Toastify({ text: "تم تحديث الفئة بنجاح!", style: { background: "green" } }).showToast();
+            const { error } = await supabase
+                .from('categories')
+                .update(data)
+                .eq('id', editingCategoryId);
+
+            if (error) throw error;
+            await logActivity('تعديل قسم في Supabase', { name: data.name, id: editingCategoryId });
+            Toastify({ text: "تم تحديث الفئة في Supabase بنجاح!", style: { background: "green" } }).showToast();
         } else {
-            data.created_at = serverTimestamp();
-            const newDoc = await addDoc(collection(db, "categories"), data);
-            await logActivity('إضافة قسم', { name: data.name, id: newDoc.id });
-            Toastify({ text: "تم إضافة الفئة بنجاح!", style: { background: "green" } }).showToast();
+            const { error } = await supabase
+                .from('categories')
+                .insert([data]);
+
+            if (error) throw error;
+            await logActivity('إضافة قسم لـ Supabase', { name: data.name });
+            Toastify({ text: "تم إضافة الفئة لـ Supabase بنجاح!", style: { background: "green" } }).showToast();
         }
 
         const modalEl = document.getElementById('addCategoryModal');
@@ -107,7 +112,7 @@ document.getElementById('categoryForm')?.addEventListener('submit', async (e) =>
 
     } catch (error) {
         console.error(error);
-        alert('فشل حفظ الفئة');
+        alert('فشل حفظ الفئة في Supabase');
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'حفظ الفئة';
@@ -117,8 +122,13 @@ document.getElementById('categoryForm')?.addEventListener('submit', async (e) =>
 window.editCategory = async (id) => {
     try {
         editingCategoryId = id;
-        const docSnap = await getDoc(doc(db, "categories", id));
-        const cat = docSnap.data();
+        const { data: cat, error } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
 
         document.getElementById('categoryName').value = cat.name;
         document.getElementById('parentCategory').value = cat.parent_id || '';
@@ -130,20 +140,25 @@ window.editCategory = async (id) => {
         new bootstrap.Modal(document.getElementById('addCategoryModal')).show();
     } catch (error) {
         console.error(error);
-        alert('فشل تحميل الفئة');
+        alert('فشل تحميل الفئة من Supabase');
     }
 };
 
 window.deleteCategory = async (id) => {
     if (!confirm('هل أنت متأكد من حذف هذه الفئة؟')) return;
     try {
-        await deleteDoc(doc(db, "categories", id));
-        await logActivity('حذف قسم', { id: id });
-        Toastify({ text: "تم حذف الفئة", style: { background: "orange" } }).showToast();
+        const { error } = await supabase
+            .from('categories')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        await logActivity('حذف قسم من Supabase', { id: id });
+        Toastify({ text: "تم حذف الفئة من Supabase", style: { background: "orange" } }).showToast();
         loadCategories();
     } catch (error) {
         console.error(error);
-        alert('فشل حذف الفئة');
+        alert('فشل حذف الفئة من Supabase');
     }
 };
 

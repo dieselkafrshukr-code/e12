@@ -1,4 +1,5 @@
 import { auth, signInWithEmailAndPassword } from './firebase-config.js';
+import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -44,3 +45,23 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         submitBtn.style.background = ''; // Reset to CSS default
     }
 });
+
+// --- Google Login Logic ---
+window.loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        console.log('Google User signed in:', user.email);
+
+        // Success Feedback
+        Toastify({ text: "تم تسجيل الدخول بواسطة Google", style: { background: "green" } }).showToast();
+
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 1000);
+    } catch (error) {
+        console.error('Google Login Error:', error);
+        alert('فشل تسجيل الدخول عبر Google: ' + error.message);
+    }
+};
