@@ -25,32 +25,38 @@ let editingProductId = null;
 // ==================== LOAD CATEGORIES ====================
 async function loadCategories() {
     try {
-        const q = query(collection(db, "categories"), where("storeId", "==", window.currentStoreId));
-        const snapshot = await getDocs(q);
-        categories = [];
+        if (!supabase) {
+            console.warn('Supabase not configured, cannot load categories');
+            return;
+        }
 
+        const { data: cats, error } = await supabase
+            .from('categories')
+            .select('*')
+            .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        categories = [];
         const categoryFilter = document.getElementById('categoryFilter');
         const productCategory = document.getElementById('productCategory');
 
-        categoryFilter.innerHTML = '<option value="">جميع الفئات</option>';
-        productCategory.innerHTML = '<option value="">اختر الفئة</option>';
+        if (categoryFilter) categoryFilter.innerHTML = '<option value="">جميع الفئات</option>';
+        if (productCategory) productCategory.innerHTML = '<option value="">اختر الفئة</option>';
 
-        const cats = [];
-        snapshot.forEach(doc => {
-            cats.push({ id: doc.id, ...doc.data() });
-        });
+        if (cats) {
+            cats.forEach(cat => {
+                const parent = cat.parent_id ? cats.find(c => c.id === cat.parent_id) : null;
+                const displayName = parent ? `${parent.name} > ${cat.name}` : cat.name;
 
-        cats.forEach(cat => {
-            const parent = cat.parent_id ? cats.find(c => c.id === cat.parent_id) : null;
-            const displayName = parent ? `${parent.name} > ${cat.name}` : cat.name;
+                categories.push({ ...cat, displayName });
 
-            categories.push({ ...cat, displayName });
-
-            categoryFilter.innerHTML += `<option value="${cat.name}">${displayName}</option>`;
-            productCategory.innerHTML += `<option value="${cat.name}">${displayName}</option>`;
-        });
+                if (categoryFilter) categoryFilter.innerHTML += `<option value="${cat.name}">${displayName}</option>`;
+                if (productCategory) productCategory.innerHTML += `<option value="${cat.name}">${displayName}</option>`;
+            });
+        }
     } catch (error) {
-        console.error('Error loading categories:', error);
+        console.error('Error loading categories from Supabase:', error);
     }
 }
 

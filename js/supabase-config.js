@@ -4,12 +4,28 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const supabaseUrl = 'YOUR_SUPABASE_URL'
 const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+let supabaseClient = null;
+
+if (supabaseUrl !== 'YOUR_SUPABASE_URL' && supabaseKey !== 'YOUR_SUPABASE_ANON_KEY') {
+    try {
+        supabaseClient = createClient(supabaseUrl, supabaseKey);
+    } catch (e) {
+        console.error('Supabase Init Error:', e);
+    }
+} else {
+    console.warn('⚠️ Supabase credentials not set! Please replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY in js/supabase-config.js');
+}
+
+export const supabase = supabaseClient;
 
 // دوال مساعدة للتعامل مع المنتجات
 export const supabaseData = {
     // جلب المنتجات
     async getProducts() {
+        if (!supabase) {
+            console.error('Supabase not configured');
+            return [];
+        }
         const { data, error } = await supabase
             .from('products')
             .select('*')
@@ -20,6 +36,7 @@ export const supabaseData = {
 
     // إضافة منتج جديد
     async addProduct(product) {
+        if (!supabase) throw new Error('Supabase not configured');
         const { data, error } = await supabase
             .from('products')
             .insert([product])
@@ -30,6 +47,7 @@ export const supabaseData = {
 
     // حذف منتج
     async deleteProduct(id) {
+        if (!supabase) throw new Error('Supabase not configured');
         const { error } = await supabase
             .from('products')
             .delete()
@@ -50,6 +68,7 @@ export const supabaseData = {
 
     // إعدادات الشحن
     async getShippingConfig() {
+        if (!supabase) return { price: 0, enabled: false };
         const { data, error } = await supabase
             .from('settings')
             .select('value')

@@ -1,6 +1,6 @@
 import { auth, collection, query, where, orderBy, limit, signOut, onAuthStateChanged } from './firebase-config.js';
 import { supabase } from './supabase-config.js';
-import { logActivity } from './main.js';
+import { logActivity } from './activity-logger.js';
 
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = 'index.html';
@@ -16,12 +16,16 @@ let editingCategoryId = null;
 
 async function loadCategories() {
     try {
+        const grid = document.getElementById('categoriesGrid');
+        if (!supabase) {
+            grid.innerHTML = '<div class="col-12 text-center py-5 text-warning">يرجى إضافة بيانات Supabase (URL & Key) في ملف js/supabase-config.js لتعمل الفئات.</div>';
+            return;
+        }
+
         const { data: categories, error } = await supabase
             .from('categories')
             .select('*')
             .order('name', { ascending: true });
-
-        const grid = document.getElementById('categoriesGrid');
 
         if (error) throw error;
 

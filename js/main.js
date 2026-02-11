@@ -104,25 +104,7 @@ function applyRoleRestrictions() {
 }
 
 // --- ACTIVITY LOG LOGIC ---
-export async function logActivity(action, details = {}) {
-    if (!auth.currentUser) return;
-
-    try {
-        await addDoc(collection(db, "activity_logs"), {
-            userId: auth.currentUser.uid,
-            userEmail: auth.currentUser.email,
-            userName: window.currentUserData?.name || auth.currentUser.email.split('@')[0],
-            role: window.currentUserData?.role || 'unknown',
-            action: action,
-            details: details,
-            storeId: window.currentUserData?.storeId || 'default',
-            timestamp: serverTimestamp()
-        });
-    } catch (error) {
-        console.error('Failed to log activity:', error);
-    }
-}
-window.logActivity = logActivity;
+export { logActivity } from './activity-logger.js';
 
 window.logout = async () => {
     await signOut(auth);
@@ -132,12 +114,18 @@ window.logout = async () => {
 // --- DASHBOARD STATISTICS ---
 async function loadDashboardStats() {
     try {
-        // Get Products Count from Supabase
-        const { count: productsCount, error: prodError } = await supabase
-            .from('products')
-            .select('*', { count: 'exact', head: true });
+        let productsCount = 0;
+        if (supabase) {
+            // Get Products Count from Supabase
+            const { count, error: prodError } = await supabase
+                .from('products')
+                .select('*', { count: 'exact', head: true });
 
-        if (prodError) throw prodError;
+            if (prodError) throw prodError;
+            productsCount = count;
+        } else {
+            console.warn('Supabase not configured, skipping products count');
+        }
 
         const prodEl = document.getElementById('totalProducts');
         if (prodEl) prodEl.innerText = productsCount || 0;
