@@ -1,8 +1,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 // بيانات مشروع Supabase الخاص بك
-const supabaseUrl = 'YOUR_SUPABASE_URL'
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'
+const supabaseUrl = 'https://ymdnfohikgjkvdmdrthe.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZG5mb2hpa2dqa3ZkbWRydGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1MTMwNjIsImV4cCI6MjA4NjA4OTA2Mn0.WtWiWA3F0MVMEKdSu8pTO6y6zgki3R40zwivmPkA50U'
 
 let supabaseClient = null;
 
