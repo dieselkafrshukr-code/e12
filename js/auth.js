@@ -62,6 +62,7 @@ window.loginWithGoogle = async () => {
         }, 1000);
     } catch (error) {
         console.error('Google Login Error:', error);
-        alert('فشل تسجيل الدخول عبر Google: ' + error.message);
+        // إظهار كود الخطأ لتسهيل التشخيص
+        alert('فشل تسجيل الدخول عبر Google: \n' + error.message + '\nCode: ' + error.code);
     }
 };
